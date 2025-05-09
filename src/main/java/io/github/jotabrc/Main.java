@@ -11,7 +11,7 @@ public class Main {
     private static final LoadEnvironmentVariables loadEnv = DependencyInjection.createLoadEnvironmentVariables();
 
     public static void main(String[] args) {
-        loadEnv.load();
+        loadEnv.loadDatabaseVariables();
         migrateDb();
     }
 

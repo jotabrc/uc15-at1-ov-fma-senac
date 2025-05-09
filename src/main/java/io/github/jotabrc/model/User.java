@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
 
 /**
- * User Data Access Object.
+ * AddUser Data Access Object.
  */
 @Getter
 @Setter

@@ -14,7 +14,7 @@ public class LoadEnvironmentVariablesImpl implements LoadEnvironmentVariables {
     }
 
     @Override
-    public void load() {
+    public void loadDatabaseVariables() {
         Properties properties = DependencyInjection.createPropertiesLoader().load("database-application.properties");
         properties.forEach((k, v) -> {
             String value = v.toString();
@@ -26,7 +26,7 @@ public class LoadEnvironmentVariablesImpl implements LoadEnvironmentVariables {
                 case "DB_USER" -> databaseConfig.setDB_USER(ifNullDefault(env, "root"));
                 case "DB_PASSWORD" -> databaseConfig.setDB_PASSWORD(ifNullDefault(env, "root"));
                 case "DB_HOST" -> databaseConfig.setDB_HOST(ifNullDefault(env, "localhost"));
-                case "DB_PORT" -> databaseConfig.setDB_PORT(ifNullDefault(env, "3336"));
+                case "DB_PORT" -> databaseConfig.setDB_PORT(Integer.parseInt(ifNullDefault(env, "3336")));
                 case "DB_SCHEMA" -> databaseConfig.setDB_SCHEMA(ifNullDefault(env, "defaultdb"));
             }
         });

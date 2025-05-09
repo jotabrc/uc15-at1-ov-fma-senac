@@ -1,9 +1,8 @@
 package io.github.jotabrc.config;
 
-import io.github.jotabrc.util.LoadEnvironmentVariables;
-import io.github.jotabrc.util.LoadEnvironmentVariablesImpl;
-import io.github.jotabrc.util.PropertiesLoader;
-import io.github.jotabrc.util.PropertiesLoaderImpl;
+import io.github.jotabrc.repository.RoleRepository;
+import io.github.jotabrc.repository.RoleRepositoryImpl;
+import io.github.jotabrc.util.*;
 
 public class DependencyInjection {
 
@@ -13,5 +12,13 @@ public class DependencyInjection {
 
     public static LoadEnvironmentVariables createLoadEnvironmentVariables() {
         return new LoadEnvironmentVariablesImpl();
+    }
+
+    public static ConnectionUtil createConnectionUtil() {
+        return new ConnectionUtilImpl();
+    }
+
+    public static RoleRepository createRoleRepository() {
+        return new RoleRepositoryImpl();
     }
 }

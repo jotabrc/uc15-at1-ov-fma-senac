@@ -14,7 +14,7 @@ public class DatabaseConfig {
     private String DB_USER;
     private String DB_PASSWORD;
     private String DB_HOST;
-    private String DB_PORT;
+    private int DB_PORT;
     private String DB_SCHEMA;
 
     @Getter(AccessLevel.NONE)

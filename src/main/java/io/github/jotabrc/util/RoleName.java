@@ -14,4 +14,11 @@ public enum RoleName {
     ADMIN("ADMIN");
 
     private final String name;
+
+    public static RoleName getRole(final String name) {
+        for (RoleName role : RoleName.values()) {
+            if (role.getName().equals(name)) return role;
+        }
+        return null;
+    }
 }
