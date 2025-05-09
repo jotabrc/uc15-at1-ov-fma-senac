@@ -20,7 +20,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public String add(final User user) {
+    public String save(final User user) {
         try (Connection conn = connectionUtil.getCon()) {
             String insertUser = "INSERT INTO tb_user " +
                     "(uuid, username, email, email, name, role, salt, hash, is_active, created_at, version)" +
@@ -48,5 +48,16 @@ public class UserRepositoryImpl implements UserRepository {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    @Override
+    public boolean existsByUsername(String username) {
+
+        return false;
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return false;
     }
 }

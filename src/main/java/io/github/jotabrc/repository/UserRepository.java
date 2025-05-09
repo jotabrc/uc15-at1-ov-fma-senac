@@ -4,5 +4,7 @@ import io.github.jotabrc.model.User;
 
 public interface UserRepository {
 
-    String add(final User user);
+    String save(final User user);
+    boolean existsByUsername(final String username);
+    boolean existsByEmail(final String email);
 }

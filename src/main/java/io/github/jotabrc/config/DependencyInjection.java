@@ -2,6 +2,8 @@ package io.github.jotabrc.config;
 
 import io.github.jotabrc.repository.RoleRepository;
 import io.github.jotabrc.repository.RoleRepositoryImpl;
+import io.github.jotabrc.repository.UserRepository;
+import io.github.jotabrc.repository.UserRepositoryImpl;
 import io.github.jotabrc.util.*;
 
 public class DependencyInjection {
@@ -20,5 +22,9 @@ public class DependencyInjection {
 
     public static RoleRepository createRoleRepository() {
         return new RoleRepositoryImpl();
+    }
+
+    public static UserRepository createUserRepository() {
+        return new UserRepositoryImpl();
     }
 }
