@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.Optional;
 
@@ -54,17 +55,33 @@ public class RoleRepositoryImpl implements RoleRepository {
         try (Connection conn = connectionUtil.getCon()) {
             LinkedHashMap<String, Object> conditions = new LinkedHashMap<>();
             conditions.put("name", name);
-            String sql = sqlBuilder.build(DQML.INSERT.getType(), "tb_role", conditions);
+            String sql = sqlBuilder.build(DQML.SELECT.getType(), "tb_role", conditions);
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                prepareStatement.prepare(ps,conditions);
+                prepareStatement.prepare(ps, conditions);
                 ps.setString(1, name);
                 try (ResultSet rs = ps.executeQuery()) {
                     Role role = null;
-                    while(rs.next()) {
+                    while (rs.next()) {
                         role = buildRole(rs);
                     }
                     return Optional.ofNullable(role);
                 }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean existsByName(String name) {
+        try (Connection conn = connectionUtil.getCon()) {
+            LinkedHashMap<String, Object> conditions = new LinkedHashMap<>();
+            conditions.put("name", name);
+            String sql = sqlBuilder.build(DQML.INSERT.getType(), "tb_role", conditions);
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                prepareStatement.prepare(ps, conditions);
+                ps.setString(1, name);
+                return ps.execute();
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -79,8 +96,8 @@ public class RoleRepositoryImpl implements RoleRepository {
                 .name(RoleName.getRole(rs.getString("name")))
                 .description(rs.getString("description"))
                 .isActive(rs.getBoolean("is_active"))
-                .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-                .updatedAt(rs.getTimestamp("updated_at").toLocalDateTime())
+                .createdAt(rs.getTimestamp("created_at").toLocalDateTime().atZone(ZoneId.of("UTC")))
+                .updatedAt(rs.getTimestamp("updated_at").toLocalDateTime().atZone(ZoneId.of("UTC")))
                 .version(rs.getInt("version"))
                 .build();
     }

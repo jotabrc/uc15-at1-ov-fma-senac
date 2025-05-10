@@ -6,6 +6,7 @@ import io.github.jotabrc.model.Role;
 import io.github.jotabrc.repository.RoleRepository;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 public class RoleServiceImpl implements RoleService {
@@ -18,6 +19,8 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public String add(AddRole dto) {
+        if (roleRepository.existsByName(dto.getName().name()))
+            throw new RuntimeException("Role with name %s already exists".formatted(dto.getName()));
         Role role = buildRole(dto);
         return roleRepository.save(role);
     }
@@ -29,7 +32,7 @@ public class RoleServiceImpl implements RoleService {
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .isActive(true)
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now().atZone(ZoneId.of("UTC")))
                 .version(0)
                 .build();
     }

@@ -3,7 +3,7 @@ package io.github.jotabrc.model;
 import io.github.jotabrc.util.RoleName;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * Role Data Access Object.
@@ -23,7 +23,7 @@ public class Role {
     private RoleName name;
     private String description;
     private boolean isActive;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private ZonedDateTime createdAt;
+    private ZonedDateTime updatedAt;
     private long version;
 }

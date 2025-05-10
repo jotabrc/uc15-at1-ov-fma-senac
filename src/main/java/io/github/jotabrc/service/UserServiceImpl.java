@@ -11,6 +11,8 @@ import io.github.jotabrc.util.RoleName;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -54,6 +56,7 @@ public class UserServiceImpl implements UserService {
                 .isActive(true)
                 .hash(hash)
                 .salt(encodedSalt)
+                .createdAt(LocalDateTime.now().atZone(ZoneId.of("UTC")))
                 .build();
     }
 
