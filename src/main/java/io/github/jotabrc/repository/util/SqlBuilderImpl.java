@@ -1,14 +1,13 @@
-package io.github.jotabrc.repository;
+package io.github.jotabrc.repository.util;
 
-import java.sql.PreparedStatement;
-import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.StringJoiner;
 import java.util.stream.Stream;
 
 public class SqlBuilderImpl implements SqlBuilder {
 
     @Override
-    public PreparedStatement build(String dqml, String table, Map<String, Object> columnsAndValues, Map<String, Object> conditions, String... fields) {
+    public String build(String dqml, String table, LinkedHashMap<String, Object> columnsAndValues, LinkedHashMap<String, Object> conditions, String[] fields) {
 
         StringBuilder sql = new StringBuilder();
 
@@ -19,7 +18,7 @@ public class SqlBuilderImpl implements SqlBuilder {
                     .append(" ")
                     .append(join(",", "(", ")", columnsAndValues))
                     .append(" VALUES ")
-                    .append(join(",", "?", columnsAndValues.size()));
+                    .append(join(",", "?", "(", ")", columnsAndValues.size()));
             case "UPDATE" -> {
                 sql
                         .append("UPDATE ")
@@ -39,21 +38,36 @@ public class SqlBuilderImpl implements SqlBuilder {
             case "SELECT" -> {
                 sql
                         .append("SELECT ")
-                        .append(join(",c", fields))
+                        .append(join(",", fields))
                         .append(" FROM ")
                         .append(table);
                 buildConditions(conditions, sql);
             }
         }
-        return "";
+        return sql.toString();
     }
 
-    private void buildConditions(Map<String, Object> conditions, StringBuilder sql) {
+    @Override
+    public String build(String dqml, String table, LinkedHashMap<String, Object> columnsAndValues, LinkedHashMap<String, Object> conditions) {
+        return build(dqml, table, columnsAndValues, conditions, null);
+    }
+
+    @Override
+    public String build(String dqml, String table, LinkedHashMap<String, Object> conditions, String[] fields) {
+        return build(dqml, table, null, conditions, fields);
+    }
+
+    @Override
+    public String build(String dqml, String table, LinkedHashMap<String, Object> columnsAndValues) {
+        return build(dqml, table, columnsAndValues, null, null);
+    }
+
+    private void buildConditions(LinkedHashMap<String, Object> conditions, StringBuilder sql) {
         if (conditions != null && !conditions.isEmpty())
             sql
                     .append(" WHERE ")
                     .append(
-                            join("AND ",
+                            join(" AND ",
                                     conditions
                                             .keySet()
                                             .stream()
@@ -63,7 +77,7 @@ public class SqlBuilderImpl implements SqlBuilder {
                     );
     }
 
-    private String join(String delimiter, Map<String, Object> map) {
+    private String join(String delimiter, LinkedHashMap<String, Object> map) {
         StringJoiner joiner = new StringJoiner(delimiter);
         for (var entry : map.entrySet()) {
             joiner.add(entry.getKey());
@@ -71,7 +85,7 @@ public class SqlBuilderImpl implements SqlBuilder {
         return joiner.toString();
     }
 
-    private String join(String delimiter, String prefix, String suffix, Map<String, Object> map) {
+    private String join(String delimiter, String prefix, String suffix, LinkedHashMap<String, Object> map) {
         StringJoiner joiner = new StringJoiner(delimiter, prefix, suffix);
         for (var entry : map.entrySet()) {
             joiner.add(entry.getKey());
@@ -87,8 +101,8 @@ public class SqlBuilderImpl implements SqlBuilder {
         return joiner.toString();
     }
 
-    private String join(String delimiter, String setter, int quantity) {
-        StringJoiner joiner = new StringJoiner(delimiter);
+    private String join(String delimiter, String setter, String prefix, String suffix, int quantity) {
+        StringJoiner joiner = new StringJoiner(delimiter, prefix, suffix);
         Stream.generate(() -> setter)
                 .limit(quantity)
                 .forEach(joiner::add);

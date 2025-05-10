@@ -2,7 +2,11 @@ package io.github.jotabrc;
 
 import io.github.jotabrc.config.DatabaseConfig;
 import io.github.jotabrc.config.DependencyInjection;
+import io.github.jotabrc.dto.AddRole;
+import io.github.jotabrc.service.RoleService;
+import io.github.jotabrc.service.RoleServiceImpl;
 import io.github.jotabrc.util.LoadEnvironmentVariables;
+import io.github.jotabrc.util.RoleName;
 import org.flywaydb.core.Flyway;
 
 public class Main {
@@ -13,6 +17,15 @@ public class Main {
     public static void main(String[] args) {
         loadEnv.loadDatabaseVariables();
         migrateDb();
+
+        RoleService roleService = new RoleServiceImpl();
+        roleService.add(
+                AddRole
+                        .builder()
+                        .name(RoleName.USER)
+                        .description("User")
+                        .build()
+        );
     }
 
     private static void migrateDb() {

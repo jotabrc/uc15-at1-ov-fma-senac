@@ -4,5 +4,5 @@ import io.github.jotabrc.dto.AddUser;
 
 public interface UserService {
 
-    String add(final AddUser user);
+    String add(final AddUser dto);
 }

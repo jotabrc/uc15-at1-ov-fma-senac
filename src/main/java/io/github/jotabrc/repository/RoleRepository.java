@@ -2,7 +2,10 @@ package io.github.jotabrc.repository;
 
 import io.github.jotabrc.model.Role;
 
+import java.util.Optional;
+
 public interface RoleRepository {
 
-    Role get(final String name);
+    String save(final Role role);
+    Optional<Role> findByName(final String name);
 }
