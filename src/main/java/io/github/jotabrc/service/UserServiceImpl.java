@@ -1,7 +1,7 @@
 package io.github.jotabrc.service;
 
 import io.github.jotabrc.config.DependencyInjection;
-import io.github.jotabrc.dto.AddUser;
+import io.github.jotabrc.dto.UserDto;
 import io.github.jotabrc.model.Role;
 import io.github.jotabrc.model.User;
 import io.github.jotabrc.repository.RoleRepository;
@@ -14,6 +14,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
+import java.util.StringJoiner;
 import java.util.UUID;
 
 public class UserServiceImpl implements UserService {
@@ -27,8 +28,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String add(AddUser dto) {
+    public String add(UserDto dto) {
         try {
+            checkAvailability(dto);
+
             User user = buildUser(dto);
             userRepository.save(user);
         } catch (Exception e) {
@@ -38,12 +41,15 @@ public class UserServiceImpl implements UserService {
         return "";
     }
 
-    private User buildUser(final AddUser dto) throws Exception {
-        byte[] salt = getSalt();
-        String encodedSalt = getEncodedSalt(salt);
-        String hash = getHash(dto.getPassword(), salt);
+    private void checkAvailability(final UserDto dto) {
+        StringJoiner joiner = new StringJoiner(",", "[", "]");
+        if (userRepository.existsByEmail(dto.getEmail())) joiner.add("Email %s unavailable".formatted(dto.getEmail()));
+        if (userRepository.existsByUsername(dto.getUsername())) joiner.add("Username %s unavailable".formatted(dto.getUsername()));
+        if (joiner.length() > 0) throw new RuntimeException(joiner.toString());
+    }
 
-        // Throws RoleNotFoundException if Role USER is not found
+    private User buildUser(final UserDto dto) throws Exception {
+        SaltAndHash saltAndHash = getSaltAndHash(dto);
         Role role = getRoleUser();
 
         return User
@@ -54,10 +60,20 @@ public class UserServiceImpl implements UserService {
                 .name(dto.getName())
                 .role(role)
                 .isActive(true)
-                .hash(hash)
-                .salt(encodedSalt)
+                .hash(saltAndHash.hash())
+                .salt(saltAndHash.encodedSalt())
                 .createdAt(LocalDateTime.now().atZone(ZoneId.of("UTC")))
                 .build();
+    }
+
+    private SaltAndHash getSaltAndHash(final UserDto dto) throws NoSuchAlgorithmException {
+        byte[] salt = getSalt();
+        String encodedSalt = getEncodedSalt(salt);
+        String hash = getHash(dto.getPassword(), salt);
+        return new SaltAndHash(encodedSalt, hash);
+    }
+
+    private record SaltAndHash(String encodedSalt, String hash) {
     }
 
     private Role getRoleUser() throws Exception {

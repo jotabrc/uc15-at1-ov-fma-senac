@@ -2,9 +2,12 @@ package io.github.jotabrc;
 
 import io.github.jotabrc.config.DatabaseConfig;
 import io.github.jotabrc.config.DependencyInjection;
-import io.github.jotabrc.dto.AddRole;
+import io.github.jotabrc.dto.RoleDto;
+import io.github.jotabrc.dto.UserDto;
 import io.github.jotabrc.service.RoleService;
 import io.github.jotabrc.service.RoleServiceImpl;
+import io.github.jotabrc.service.UserService;
+import io.github.jotabrc.service.UserServiceImpl;
 import io.github.jotabrc.util.LoadEnvironmentVariables;
 import io.github.jotabrc.util.RoleName;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +21,14 @@ public class Main {
     private static final LoadEnvironmentVariables loadEnv = DependencyInjection.createLoadEnvironmentVariables();
 
     public static void main(String[] args) {
-        loadEnv.loadDatabaseVariables();
-        migrateDb();
-        addRole();
+        try {
+            loadEnv.loadDatabaseVariables();
+            migrateDb();
+            addRole();
+            addUser();
+        } catch (Exception e) {
+            log.info(e.getMessage());
+        }
     }
 
     private static void migrateDb() {
@@ -36,22 +44,25 @@ public class Main {
                     .load();
             flyway.migrate();
         } catch (FlywayException e) {
-            log.warn(e.getMessage());
+            log.error(e.getMessage());
         }
     }
 
+    /**
+     * AT 1 requirement.
+     */
     private static void addRole() {
         RoleService roleService = new RoleServiceImpl();
         try {
             roleService.add(
-                    AddRole
+                    RoleDto
                             .builder()
                             .name(RoleName.USER)
                             .description("User")
                             .build()
             );
             roleService.add(
-                    AddRole
+                    RoleDto
                             .builder()
                             .name(RoleName.ADMIN)
                             .description("Admin")
@@ -60,5 +71,21 @@ public class Main {
         } catch (Exception e) {
            log.info(e.getMessage());
         }
+    }
+
+    /**
+     * AT 1 requirement.
+     */
+    private static void addUser() {
+        UserService userService = new UserServiceImpl();
+        userService.add(
+                UserDto
+                        .builder()
+                        .username("example")
+                        .email("email@email")
+                        .name("John Doe")
+                        .password("password1234")
+                        .build()
+        );
     }
 }

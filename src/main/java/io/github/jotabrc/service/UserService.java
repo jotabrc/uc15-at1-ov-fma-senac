@@ -1,8 +1,8 @@
 package io.github.jotabrc.service;
 
-import io.github.jotabrc.dto.AddUser;
+import io.github.jotabrc.dto.UserDto;
 
 public interface UserService {
 
-    String add(final AddUser dto);
+    String add(final UserDto dto);
 }

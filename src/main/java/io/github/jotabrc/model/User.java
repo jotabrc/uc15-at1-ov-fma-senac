@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import java.time.ZonedDateTime;
 
 /**
- * AddUser Data Access Object.
+ * UserDto Data Access Object.
  */
 @Getter
 @Setter

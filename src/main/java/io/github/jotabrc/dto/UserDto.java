@@ -4,7 +4,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 
 /**
- * AddUser Data Access Object.
+ * UserDto Data Access Object.
  */
 @Getter
 @Setter
@@ -12,7 +12,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class AddUser {
+public class UserDto {
 
     private String username;
     private String email;

@@ -1,8 +1,8 @@
 package io.github.jotabrc.service;
 
-import io.github.jotabrc.dto.AddRole;
+import io.github.jotabrc.dto.RoleDto;
 
 public interface RoleService {
 
-    String add(final AddRole dto);
+    String add(final RoleDto dto);
 }

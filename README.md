@@ -1,36 +1,46 @@
 # PROJETO INTEGRADOR UC15 — SENAC
 
-# TECHNICAL DOCUMENTATION
+# DOCUMENTAÇÃO TÉCNICA
 
 **Responsible**: João Carlos Roveda Ostrovski  
 **System name**: OV-FMA \- Ostro Veda Finance Management Application (Aplicação de Gerenciamento Financeiro)  
 **Versão**: 1.0.0
 
-# Project description
+# DESCRIÇÃO
 
-Financial management; income, expenditure, tracking; financial budget and investment registration.
+Gestão financeira, usuários podem inserir seus créditos e débitos, sejam eles recorrentes ou únicos, e desta forma planejar seu orçamento.
 
-### Functionalities:
+# TECNOLOGIAS
 
-* Registration;  
-* User data updates;  
-* Registering of:  
-  * Income;  
-  * Expenditures;  
-  * Investments;  
-* Delete, query and updates of registered data.
-
-# Non-functional
-
-* Programming Language: Java;  
-* Database: MySQL;  
+* Linguagem de programação: Java;
+* Database: MySQL;
 * OS: Windows.
 
-# Functional
+# DEPENDÊNCIAS
 
-## Users can:
+* FLYWAY
+  * Database migration, irá auxiliar na criação do banco de dados e sua manutenção, possibilitando uma evolução contínua e estruturada.
+* JDBC
+  * MySQL Connector, será o driver de conexão com o banco de dados.
+* Lombok
+  * Visando um código limpo, bem estruturado e conciso, será utilizado para anotar as classes e para geração de código boilerplate na compilação do projeto.
+* SLF4J
+  * Logs com Logback.
 
-* Register;  
-* Authenticate;  
-* Insert, update, delete and query their data.
+# FUNCIONAL
 
+* Usuários
+  * Registro de conta;
+  * Atualização de dados de cadastro;
+  * Autenticação;
+  * Registro de débitos e créditos;
+    * Recorrentes ou não.
+  * Atualização de débitos e créditos;
+  * Visualização de dados.
+* Administradores
+  * Todos os recursos que os usuários;
+  * Desativar contas de usuário.
+
+
+# Diagram
+![ov-fma.drawio(6).png](docs/ov-fma.drawio%286%29.png)

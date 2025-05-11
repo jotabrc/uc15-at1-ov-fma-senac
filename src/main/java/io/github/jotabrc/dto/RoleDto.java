@@ -11,7 +11,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AddRole {
+public class RoleDto {
 
     private RoleName name;
     private String description;

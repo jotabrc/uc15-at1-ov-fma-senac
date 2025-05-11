@@ -55,15 +55,13 @@ public class RoleRepositoryImpl implements RoleRepository {
         try (Connection conn = connectionUtil.getCon()) {
             LinkedHashMap<String, Object> conditions = new LinkedHashMap<>();
             conditions.put("name", name);
-            String sql = sqlBuilder.build(DQML.SELECT.getType(), "tb_role", conditions);
+            String sql = sqlBuilder.build(DQML.SELECT.getType(), "tb_role", conditions, new String[]{"*"});
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 prepareStatement.prepare(ps, conditions);
                 ps.setString(1, name);
                 try (ResultSet rs = ps.executeQuery()) {
                     Role role = null;
-                    while (rs.next()) {
-                        role = buildRole(rs);
-                    }
+                    role = buildRole(rs);
                     return Optional.ofNullable(role);
                 }
             }
@@ -77,11 +75,12 @@ public class RoleRepositoryImpl implements RoleRepository {
         try (Connection conn = connectionUtil.getCon()) {
             LinkedHashMap<String, Object> conditions = new LinkedHashMap<>();
             conditions.put("name", name);
-            String sql = sqlBuilder.build(DQML.INSERT.getType(), "tb_role", conditions);
+            String sql = sqlBuilder.build(DQML.SELECT.getType(), "tb_role", conditions, new String[]{"name"});
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 prepareStatement.prepare(ps, conditions);
                 ps.setString(1, name);
-                return ps.execute();
+                ResultSet rs = ps.executeQuery();
+                return rs.next();
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -89,17 +88,24 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     private Role buildRole(final ResultSet rs) throws SQLException {
-        return Role
-                .builder()
-                .id(rs.getInt("id"))
-                .uuid(rs.getString("uuid"))
-                .name(RoleName.getRole(rs.getString("name")))
-                .description(rs.getString("description"))
-                .isActive(rs.getBoolean("is_active"))
-                .createdAt(rs.getTimestamp("created_at").toLocalDateTime().atZone(ZoneId.of("UTC")))
-                .updatedAt(rs.getTimestamp("updated_at").toLocalDateTime().atZone(ZoneId.of("UTC")))
-                .version(rs.getInt("version"))
-                .build();
+        if (rs.next()) {
+            return Role
+                    .builder()
+                    .id(rs.getLong("id"))
+                    .uuid(rs.getString("uuid"))
+                    .name(RoleName.getRole(rs.getString("name")))
+                    .description(rs.getString("description"))
+                    .isActive(rs.getBoolean("is_active"))
+                    .createdAt(rs.getTimestamp("created_at").toLocalDateTime().atZone(ZoneId.of("UTC")))
+                    .updatedAt(
+                            rs.getTimestamp("updated_at") != null ?
+                                    rs.getTimestamp("updated_at").toLocalDateTime().atZone(ZoneId.of("UTC")) :
+                                    null
+                    )
+                    .version(rs.getInt("version"))
+                    .build();
+        }
+        return null;
     }
 
     private LinkedHashMap<String, Object> getColumnsAndValues(final Role role) {
