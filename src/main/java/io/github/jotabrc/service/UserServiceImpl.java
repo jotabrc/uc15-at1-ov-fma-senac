@@ -6,6 +6,8 @@ import io.github.jotabrc.model.Role;
 import io.github.jotabrc.model.User;
 import io.github.jotabrc.repository.RoleRepository;
 import io.github.jotabrc.repository.UserRepository;
+import io.github.jotabrc.repository.util.DQML;
+import io.github.jotabrc.security.ApplicationContext;
 import io.github.jotabrc.util.RoleName;
 
 import java.security.MessageDigest;
@@ -21,19 +23,21 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ApplicationContext applicationContext;
 
     public UserServiceImpl() {
         this.userRepository = DependencyInjection.createUserRepository();
         this.roleRepository = DependencyInjection.createRoleRepository();
+        this.applicationContext = ApplicationContext.getInstance();
     }
 
     @Override
     public String add(UserDto dto) {
         try {
-            checkAvailability(dto);
+            checkAvailability(dto, null);
 
             User user = buildUser(dto);
-            userRepository.save(user);
+            userRepository.save(user, DQML.INSERT);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -41,11 +45,39 @@ public class UserServiceImpl implements UserService {
         return "";
     }
 
-    private void checkAvailability(final UserDto dto) {
+    @Override
+    public void update(UserDto dto) throws Exception {
+        applicationContext.checkExpiration();
+        String uuid = getContextUuid();
+        User user = getUserWithUuid(uuid);
+        checkAvailability(dto, user);
+
+        SaltAndHash saltAndHash = getSaltAndHash(dto);
+        user
+                .setUsername(dto.getUsername())
+                .setEmail(dto.getEmail())
+                .setName(dto.getName())
+                .setSalt(saltAndHash.encodedSalt())
+                .setHash(saltAndHash.hash())
+                .setUpdatedAt(LocalDateTime.now().atZone(ZoneId.of("UTC")))
+                .setVersion(user.getVersion() + 1);
+
+        userRepository.save(user, DQML.UPDATE);
+    }
+
+    private void checkAvailability(final UserDto dto, final User user) {
         StringJoiner joiner = new StringJoiner(",", "[", "]");
-        if (userRepository.existsByEmail(dto.getEmail())) joiner.add("Email %s unavailable".formatted(dto.getEmail()));
-        if (userRepository.existsByUsername(dto.getUsername())) joiner.add("Username %s unavailable".formatted(dto.getUsername()));
+        if (user == null || !user.getUsername().equals(dto.getUsername())) checkUsernameAvailability(dto.getUsername(), joiner);
+        if (user == null || !user.getEmail().equals(dto.getEmail())) checkEmailAvailability(dto.getEmail(), joiner);
         if (joiner.length() > 0) throw new RuntimeException(joiner.toString());
+    }
+
+    private void checkUsernameAvailability(final String username, final StringJoiner joiner) {
+        if (userRepository.existsByUsername(username)) joiner.add("Username %s unavailable".formatted(username));
+    }
+
+    private void checkEmailAvailability(final String email, final StringJoiner joiner) {
+        if (userRepository.existsByEmail(email)) joiner.add("Email %s unavailable".formatted(email));
     }
 
     private User buildUser(final UserDto dto) throws Exception {
@@ -102,5 +134,14 @@ public class UserServiceImpl implements UserService {
     private String getHash(final String password, final String salt) throws NoSuchAlgorithmException {
         byte[] saltByte = Base64.getDecoder().decode(salt);
         return getHash(password, saltByte);
+    }
+
+    private String getContextUuid() {
+        return applicationContext.getUserUuid().orElseThrow(() -> new RuntimeException("Access denied"));
+    }
+
+    private User getUserWithUuid(String uuid) {
+        return userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new RuntimeException("User with UUID %s not found".formatted(uuid)));
     }
 }

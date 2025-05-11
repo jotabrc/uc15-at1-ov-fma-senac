@@ -58,7 +58,25 @@ public class RoleRepositoryImpl implements RoleRepository {
             String sql = sqlBuilder.build(DQML.SELECT.getType(), "tb_role", conditions, new String[]{"*"});
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 prepareStatement.prepare(ps, conditions);
-                ps.setString(1, name);
+                try (ResultSet rs = ps.executeQuery()) {
+                    Role role = null;
+                    role = buildRole(rs);
+                    return Optional.ofNullable(role);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Optional<Role> findById(long id) {
+        try (Connection conn = connectionUtil.getCon()) {
+            LinkedHashMap<String, Object> conditions = new LinkedHashMap<>();
+            conditions.put("id", id);
+            String sql = sqlBuilder.build(DQML.SELECT.getType(), "tb_role", conditions, new String[]{"*"});
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                prepareStatement.prepare(ps, conditions);
                 try (ResultSet rs = ps.executeQuery()) {
                     Role role = null;
                     role = buildRole(rs);

@@ -1,34 +1,50 @@
 package io.github.jotabrc.repository;
 
 import io.github.jotabrc.config.DependencyInjection;
+import io.github.jotabrc.model.Role;
 import io.github.jotabrc.model.User;
 import io.github.jotabrc.repository.util.DQML;
 import io.github.jotabrc.repository.util.PrepareStatement;
 import io.github.jotabrc.repository.util.SqlBuilder;
+import io.github.jotabrc.security.ApplicationContext;
 import io.github.jotabrc.util.ConnectionUtil;
 
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.LinkedHashMap;
+import java.util.Optional;
 
 public class UserRepositoryImpl implements UserRepository {
 
     private final ConnectionUtil connectionUtil;
     private final SqlBuilder sqlBuilder;
     private final PrepareStatement prepareStatement;
+    private final RoleRepository roleRepository;
+    private final ApplicationContext applicationContext;
 
     public UserRepositoryImpl() {
         this.connectionUtil = DependencyInjection.createConnectionUtil();
         this.sqlBuilder = DependencyInjection.createSqlBuilder();
         this.prepareStatement = DependencyInjection.createPrepareStatement();
+        this.roleRepository = DependencyInjection.createRoleRepository();
+        this.applicationContext = ApplicationContext.getInstance();
     }
 
     @Override
-    public String save(final User user) {
+    public String save(User user, DQML dqml) {
         try (Connection conn = connectionUtil.getCon()) {
             LinkedHashMap<String, Object> columnsAndValues = getColumnsAndValues(user);
-            String sql = sqlBuilder.build(DQML.INSERT.getType(), "tb_user", columnsAndValues);
+            String sql = "";
+            switch (dqml) {
+                case INSERT -> sql = sqlBuilder.build(dqml.getType(), "tb_user", columnsAndValues);
+                case UPDATE -> {
+                    String uuid = applicationContext.getUserUuid().orElseThrow(() -> new RuntimeException("User UUID not found"));
+                    LinkedHashMap<String, Object> conditions = new LinkedHashMap<>();
+                    conditions.put("uuid", uuid);
+                    sql = sqlBuilder.build(dqml.getType(), "tb_user", columnsAndValues, conditions);
+                }
+            }
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 conn.setAutoCommit(false);
                 prepareStatement.prepare(ps, columnsAndValues);
@@ -41,6 +57,27 @@ public class UserRepositoryImpl implements UserRepository {
                 throw new RuntimeException(e);
             }
 
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Optional<User> findByUuid(String uuid) {
+        try (Connection conn = connectionUtil.getCon()) {
+            LinkedHashMap<String, Object> conditions = new LinkedHashMap<>();
+            conditions.put("uuid", uuid);
+            String sql = sqlBuilder.build(DQML.SELECT.getType(), "tb_user", conditions, new String[]{"*"});
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                prepareStatement.prepare(ps, conditions);
+                try (ResultSet rs = ps.executeQuery()) {
+                    User user = null;
+                    user = buildUser(rs);
+                    return Optional.ofNullable(user);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -98,5 +135,36 @@ public class UserRepositoryImpl implements UserRepository {
             conn.rollback();
             throw new RuntimeException(e);
         }
+    }
+
+    private User buildUser(ResultSet rs) throws Exception {
+        if (rs.next()) {
+            Role role = getRoleUser(rs.getLong("role_id"));
+            return User
+                    .builder()
+                    .id(rs.getLong("id"))
+                    .uuid(rs.getString("uuid"))
+                    .username(rs.getString("username"))
+                    .email(rs.getString("email"))
+                    .name(rs.getString("name"))
+                    .role(role)
+                    .salt(null)
+                    .hash(null)
+                    .isActive(rs.getBoolean("is_active"))
+                    .createdAt(rs.getTimestamp("created_at").toLocalDateTime().atZone(ZoneId.of("UTC")))
+                    .updatedAt(
+                            rs.getTimestamp("updated_at") != null ?
+                                    rs.getTimestamp("updated_at").toLocalDateTime().atZone(ZoneId.of("UTC")) :
+                                    null
+                    )
+                    .version(rs.getInt("version"))
+                    .build();
+        }
+        return null;
+    }
+
+    private Role getRoleUser(final long id) throws Exception {
+        return roleRepository.findById(id)
+                .orElseThrow(() -> new Exception("Role with ID %d not found".formatted(id)));
     }
 }
