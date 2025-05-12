@@ -78,14 +78,18 @@ public class Main {
      */
     private static void addUser() {
         UserService userService = new UserServiceImpl();
-        userService.add(
-                UserDto
-                        .builder()
-                        .username("example")
-                        .email("email@email")
-                        .name("John Doe")
-                        .password("password1234")
-                        .build()
-        );
+        try {
+            userService.add(
+                    UserDto
+                            .builder()
+                            .username("example")
+                            .email("email@email")
+                            .name("John Doe")
+                            .password("password1234")
+                            .build()
+            );
+        } catch (Exception e) {
+            log.info(e.getMessage());
+        }
     }
 }
