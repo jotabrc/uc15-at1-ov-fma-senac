@@ -18,6 +18,7 @@ import java.time.ZoneId;
 import java.util.Base64;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class UserServiceImpl implements UserService {
 
@@ -63,6 +64,12 @@ public class UserServiceImpl implements UserService {
                 .setVersion(user.getVersion() + 1);
 
         userRepository.save(user, DQML.UPDATE);
+    }
+
+    @Override
+    public UserDto findByUuid(String uuid) {
+        User user = getUserWithUuid(uuid);
+        return toDto(user);
     }
 
     private void checkAvailability(final UserDto dto, final User user) {
@@ -143,5 +150,17 @@ public class UserServiceImpl implements UserService {
     private User getUserWithUuid(String uuid) {
         return userRepository.findByUuid(uuid)
                 .orElseThrow(() -> new RuntimeException("User with UUID %s not found".formatted(uuid)));
+    }
+
+    private UserDto toDto(final User user) {
+        Function<User, UserDto> fn = (u) ->
+                UserDto
+                .builder()
+                .username(u.getUsername())
+                .email(u.getEmail())
+                .name(u.getName())
+                .password(null)
+                .build();
+        return fn.apply(user);
     }
 }
