@@ -40,6 +40,7 @@ public class RoleRepositoryImpl implements RoleRepository {
                 ps.executeUpdate();
                 conn.commit();
                 conn.setAutoCommit(true);
+                return role.getUuid();
             } catch (SQLException e) {
                 conn.rollback();
                 throw new RuntimeException(e);
@@ -47,7 +48,6 @@ public class RoleRepositoryImpl implements RoleRepository {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return "";
     }
 
     @Override

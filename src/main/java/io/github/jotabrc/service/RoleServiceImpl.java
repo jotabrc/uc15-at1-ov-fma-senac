@@ -18,10 +18,14 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public String add(RoleDto dto) {
-        if (roleRepository.existsByName(dto.getName().name()))
-            throw new RuntimeException("Role with name %s already exists".formatted(dto.getName()));
+        existsByName(dto);
         Role role = buildRole(dto);
         return roleRepository.save(role);
+    }
+
+    private void existsByName(RoleDto dto) {
+        if (roleRepository.existsByName(dto.getName().name()))
+            throw new RuntimeException("Role with name %s already exists".formatted(dto.getName()));
     }
 
     private Role buildRole(final RoleDto dto) {
