@@ -1,6 +1,5 @@
 package io.github.jotabrc.service;
 
-import io.github.jotabrc.config.DependencyInjection;
 import io.github.jotabrc.dto.RoleDto;
 import io.github.jotabrc.model.Role;
 import io.github.jotabrc.repository.RoleRepository;
@@ -13,8 +12,8 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
 
-    public RoleServiceImpl() {
-        this.roleRepository = DependencyInjection.createRoleRepository();
+    public RoleServiceImpl(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
     }
 
     @Override

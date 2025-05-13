@@ -4,6 +4,7 @@ import io.github.jotabrc.config.DatabaseConfig;
 import io.github.jotabrc.config.DependencyInjection;
 import io.github.jotabrc.dto.RoleDto;
 import io.github.jotabrc.dto.UserDto;
+import io.github.jotabrc.security.ApplicationContext;
 import io.github.jotabrc.service.RoleService;
 import io.github.jotabrc.service.RoleServiceImpl;
 import io.github.jotabrc.service.UserService;
@@ -52,7 +53,7 @@ public class Main {
      * AT 1 requirement.
      */
     private static void addRole() {
-        RoleService roleService = new RoleServiceImpl();
+        RoleService roleService = new RoleServiceImpl(DependencyInjection.createRoleRepository());
         try {
             roleService.add(
                     RoleDto
@@ -69,7 +70,7 @@ public class Main {
                             .build()
             );
         } catch (Exception e) {
-           log.info(e.getMessage());
+            log.info(e.getMessage());
         }
     }
 
@@ -77,7 +78,11 @@ public class Main {
      * AT 1 requirement.
      */
     private static void addUser() {
-        UserService userService = new UserServiceImpl();
+        UserService userService = new UserServiceImpl(
+                DependencyInjection.createUserRepository(),
+                DependencyInjection.createRoleRepository(),
+                ApplicationContext.getInstance()
+        );
         try {
             userService.add(
                     UserDto

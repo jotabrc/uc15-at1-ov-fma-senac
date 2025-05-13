@@ -1,6 +1,5 @@
 package io.github.jotabrc.service;
 
-import io.github.jotabrc.config.DependencyInjection;
 import io.github.jotabrc.dto.UserDto;
 import io.github.jotabrc.model.Role;
 import io.github.jotabrc.model.User;
@@ -26,10 +25,10 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final ApplicationContext applicationContext;
 
-    public UserServiceImpl() {
-        this.userRepository = DependencyInjection.createUserRepository();
-        this.roleRepository = DependencyInjection.createRoleRepository();
-        this.applicationContext = ApplicationContext.getInstance();
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, ApplicationContext applicationContext) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -39,11 +38,10 @@ public class UserServiceImpl implements UserService {
 
             User user = buildUser(dto);
             userRepository.save(user, DQML.INSERT);
+            return user.getUuid();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        return "";
     }
 
     @Override
@@ -76,7 +74,7 @@ public class UserServiceImpl implements UserService {
         StringJoiner joiner = new StringJoiner(",", "[", "]");
         if (user == null || !user.getUsername().equals(dto.getUsername())) checkUsernameAvailability(dto.getUsername(), joiner);
         if (user == null || !user.getEmail().equals(dto.getEmail())) checkEmailAvailability(dto.getEmail(), joiner);
-        if (joiner.length() > 0) throw new RuntimeException(joiner.toString());
+        if (joiner.length() > 2) throw new RuntimeException(joiner.toString());
     }
 
     private void checkUsernameAvailability(final String username, final StringJoiner joiner) {
