@@ -65,7 +65,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto findByUuid(String uuid) {
+    public UserDto findByUuid() {
+        applicationContext.checkExpiration();
+        String uuid = getContextUuid();
         User user = getUserWithUuid(uuid);
         return toDto(user);
     }

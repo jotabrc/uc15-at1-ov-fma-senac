@@ -111,8 +111,10 @@ public class UserServiceImplTest {
                 .updatedAt(null)
                 .version(0)
                 .build();
+        doNothing().when(applicationContext).checkExpiration();
+        when(applicationContext.getUserUuid()).thenReturn(Optional.of("uuid"));
         when(userRepository.findByUuid(any())).thenReturn(Optional.of(user));
-        UserDto dto = userService.findByUuid("uuid");
+        UserDto dto = userService.findByUuid();
         assert dto.getEmail().equals("sample@sample");
     }
 }
