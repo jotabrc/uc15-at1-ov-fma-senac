@@ -9,6 +9,7 @@ public interface UserRepository {
 
     String save(final User user, final DQML dqml);
     Optional<User> findByUuid(final String uuid);
+    Optional<User> findByEmail(final String email);
     boolean existsByUsername(final String username);
     boolean existsByEmail(final String email);
 }

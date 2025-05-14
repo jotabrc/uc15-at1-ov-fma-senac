@@ -6,5 +6,6 @@ public interface UserService {
 
     String add(final UserDto dto);
     void update(final UserDto dto) throws Exception;
+    void auth(final UserDto dto) throws Exception;
     UserDto findByUuid();
 }

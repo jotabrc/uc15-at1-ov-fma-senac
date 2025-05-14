@@ -8,6 +8,7 @@ import io.github.jotabrc.repository.UserRepository;
 import io.github.jotabrc.repository.util.DQML;
 import io.github.jotabrc.security.ApplicationContext;
 import io.github.jotabrc.util.RoleName;
+import lombok.extern.slf4j.Slf4j;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -15,10 +16,13 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
-import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -35,7 +39,6 @@ public class UserServiceImpl implements UserService {
     public String add(UserDto dto) {
         try {
             checkAvailability(dto, null);
-
             User user = buildUser(dto);
             userRepository.save(user, DQML.INSERT);
             return user.getUuid();
@@ -65,6 +68,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void auth(UserDto dto) throws Exception {
+        User user = getUserWithEmail(dto.getEmail());
+        userAuth(dto.getPassword(), user.getSalt(), user.getHash());
+        applicationContext
+                .setUserUuid(user.getUuid())
+                .setExpiration(LocalDateTime.now().plusHours(1).atZone(ZoneId.systemDefault()));
+    }
+
+    @Override
     public UserDto findByUuid() {
         applicationContext.checkExpiration();
         String uuid = getContextUuid();
@@ -73,18 +85,33 @@ public class UserServiceImpl implements UserService {
     }
 
     private void checkAvailability(final UserDto dto, final User user) {
-        StringJoiner joiner = new StringJoiner(",", "[", "]");
-        if (user == null || !user.getUsername().equals(dto.getUsername())) checkUsernameAvailability(dto.getUsername(), joiner);
-        if (user == null || !user.getEmail().equals(dto.getEmail())) checkEmailAvailability(dto.getEmail(), joiner);
-        if (joiner.length() > 2) throw new RuntimeException(joiner.toString());
+        CompletableFuture.supplyAsync(() -> checkUsernameAvailability(dto.getUsername(), user))
+                .exceptionally(ex -> {
+                    log.error("Error checking username availability: {}", ex.getMessage());
+                    return "";
+                }).thenCombine(
+                        CompletableFuture
+                                .supplyAsync(() -> checkEmailAvailability(dto.getEmail(), user))
+                                .exceptionally(ex -> {
+                                    log.error("Error checking email availability: {}", ex.getMessage());
+                                    return "";
+                                }), (m1, m2) -> Stream.of(m1, m2)
+                                .filter(s -> !s.isEmpty()).collect(Collectors.toList())
+                ).thenAccept(messages -> {
+                    if (!messages.isEmpty()) throw new RuntimeException("[" + String.join(",", messages) + "]");
+                });
     }
 
-    private void checkUsernameAvailability(final String username, final StringJoiner joiner) {
-        if (userRepository.existsByUsername(username)) joiner.add("Username %s unavailable".formatted(username));
+    private String checkUsernameAvailability(final String username, final User user) {
+        if (user == null || !user.getUsername().equals(username))
+            if (userRepository.existsByUsername(username)) return "Username %s unavailable".formatted(username);
+        return "";
     }
 
-    private void checkEmailAvailability(final String email, final StringJoiner joiner) {
-        if (userRepository.existsByEmail(email)) joiner.add("Email %s unavailable".formatted(email));
+    private String checkEmailAvailability(final String email, final User user) {
+        if (user == null || !user.getEmail().equals(email))
+            if (userRepository.existsByEmail(email)) return "Email %s unavailable".formatted(email);
+        return "";
     }
 
     private User buildUser(final UserDto dto) throws Exception {
@@ -120,6 +147,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new Exception("Role USER not found"));
     }
 
+    private void userAuth(final String password, final String salt, final String hash) throws NoSuchAlgorithmException {
+        String hashed = getHash(password, salt);
+        if (!hashed.equals(hash)) throw new RuntimeException("Authentication Denied");
+    }
+
     private String getEncodedSalt(final byte[] salt) throws NoSuchAlgorithmException {
         return Base64.getEncoder().encodeToString(salt);
     }
@@ -147,20 +179,25 @@ public class UserServiceImpl implements UserService {
         return applicationContext.getUserUuid().orElseThrow(() -> new RuntimeException("Access denied"));
     }
 
-    private User getUserWithUuid(String uuid) {
+    private User getUserWithUuid(final String uuid) {
         return userRepository.findByUuid(uuid)
                 .orElseThrow(() -> new RuntimeException("User with UUID %s not found".formatted(uuid)));
+    }
+
+    private User getUserWithEmail(final String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User with EMAIL %s not found".formatted(email)));
     }
 
     private UserDto toDto(final User user) {
         Function<User, UserDto> fn = (u) ->
                 UserDto
-                .builder()
-                .username(u.getUsername())
-                .email(u.getEmail())
-                .name(u.getName())
-                .password(null)
-                .build();
+                        .builder()
+                        .username(u.getUsername())
+                        .email(u.getEmail())
+                        .name(u.getName())
+                        .password(null)
+                        .build();
         return fn.apply(user);
     }
 }

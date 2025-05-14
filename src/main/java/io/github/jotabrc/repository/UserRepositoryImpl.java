@@ -84,6 +84,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public Optional<User> findByEmail(String email) {
+        return Optional.empty();
+    }
+
+    @Override
     public boolean existsByUsername(String username) {
         try (Connection conn = connectionUtil.getCon()) {
             LinkedHashMap<String, Object> conditions = new LinkedHashMap<>();
