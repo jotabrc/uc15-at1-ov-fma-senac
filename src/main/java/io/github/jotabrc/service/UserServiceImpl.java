@@ -1,5 +1,6 @@
 package io.github.jotabrc.service;
 
+import io.github.jotabrc.dto.UserAuthDto;
 import io.github.jotabrc.dto.UserDto;
 import io.github.jotabrc.model.Role;
 import io.github.jotabrc.model.User;
@@ -68,7 +69,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void auth(UserDto dto) throws Exception {
+    public void auth(UserAuthDto dto) throws Exception {
         User user = getUserWithEmail(dto.getEmail());
         userAuth(dto.getPassword(), user.getSalt(), user.getHash());
         applicationContext

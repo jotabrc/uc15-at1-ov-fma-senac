@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor
-public class UserAuth {
+public class UserAuthDto {
 
     private final String email;
     private final String password;

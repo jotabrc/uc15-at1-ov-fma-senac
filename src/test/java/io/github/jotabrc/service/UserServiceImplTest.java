@@ -1,5 +1,6 @@
 package io.github.jotabrc.service;
 
+import io.github.jotabrc.dto.UserAuthDto;
 import io.github.jotabrc.dto.UserDto;
 import io.github.jotabrc.model.Role;
 import io.github.jotabrc.model.User;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
@@ -91,6 +93,32 @@ public class UserServiceImplTest {
             assert !user.getSalt().equals("salt");
             assert !user.getHash().equals("hash");
             assert user.getUpdatedAt() != null;
+        } catch (Exception ignored) {
+            fail();
+        }
+    }
+
+    @Test
+    public void auth() {
+        ApplicationContext appc = ApplicationContext.getInstance().setUserUuid("uuid");
+        when(applicationContext.setUserUuid(any())).thenReturn(appc);
+        when(applicationContext.setExpiration(any())).thenReturn(appc);
+        when(userRepository.findByEmail(any())).thenReturn(Optional.ofNullable(
+                User
+                        .builder()
+                        .uuid("uuid")
+                        .salt("salt")
+                        .hash("WC6CSqWrJ0CZBmWfR6oaDJFpgKiO/rhBhsNPGC2tAhEkN07JcdxGm7yCU7jIxF9V8LjJoik+4u2kkJ5mjmZw8Q==")
+                        .build()));
+        UserAuthDto auth = UserAuthDto
+                .builder()
+                .password("password1234")
+                .email("email@email")
+                .build();
+        try {
+            userService.auth(auth);
+            assert appc.getUserUuid().isPresent();
+            assertDoesNotThrow(appc::checkExpiration);
         } catch (Exception ignored) {
             fail();
         }
