@@ -3,6 +3,7 @@ package io.github.jotabrc;
 import io.github.jotabrc.config.DatabaseConfig;
 import io.github.jotabrc.config.DependencyInjection;
 import io.github.jotabrc.dto.RoleDto;
+import io.github.jotabrc.dto.UserAuthDto;
 import io.github.jotabrc.dto.UserDto;
 import io.github.jotabrc.security.ApplicationContext;
 import io.github.jotabrc.service.RoleService;
@@ -27,6 +28,18 @@ public class Main {
             migrateDb();
             addRole();
             addUser();
+            UserService userService = new UserServiceImpl(
+                    DependencyInjection.createUserRepository(),
+                    DependencyInjection.createRoleRepository(),
+                    ApplicationContext.getInstance());
+            userService.auth(
+                    UserAuthDto
+                            .builder()
+                            .email("email@email")
+                            .password("password1234")
+                            .build()
+            );
+            System.out.println(ApplicationContext.getInstance().getUserUuid());
         } catch (Exception e) {
             log.info(e.getMessage());
         }

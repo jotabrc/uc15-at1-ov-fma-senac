@@ -85,7 +85,24 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return Optional.empty();
+        try (Connection conn = connectionUtil.getCon()) {
+            LinkedHashMap<String, Object> conditions = new LinkedHashMap<>();
+            conditions.put("email", email);
+
+            String sql = sqlBuilder.build(DQML.SELECT.getType(), "tb_user", conditions, new String[]{"*"});
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                prepareStatement.prepare(ps, conditions);
+                try (ResultSet rs = ps.executeQuery()) {
+                    User user = null;
+                    user = buildUser(rs);
+                    return Optional.ofNullable(user);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -153,8 +170,8 @@ public class UserRepositoryImpl implements UserRepository {
                     .email(rs.getString("email"))
                     .name(rs.getString("name"))
                     .role(role)
-                    .salt(null)
-                    .hash(null)
+                    .salt(rs.getString("salt"))
+                    .hash(rs.getString("hash"))
                     .isActive(rs.getBoolean("is_active"))
                     .createdAt(rs.getTimestamp("created_at").toLocalDateTime().atZone(ZoneId.of("UTC")))
                     .updatedAt(

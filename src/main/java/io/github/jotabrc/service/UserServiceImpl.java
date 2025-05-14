@@ -86,7 +86,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private void checkAvailability(final UserDto dto, final User user) {
-        CompletableFuture.supplyAsync(() -> checkUsernameAvailability(dto.getUsername(), user))
+        CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> checkUsernameAvailability(dto.getUsername(), user))
                 .exceptionally(ex -> {
                     log.error("Error checking username availability: {}", ex.getMessage());
                     return "";
@@ -101,6 +101,7 @@ public class UserServiceImpl implements UserService {
                 ).thenAccept(messages -> {
                     if (!messages.isEmpty()) throw new RuntimeException("[" + String.join(",", messages) + "]");
                 });
+        future.join();
     }
 
     private String checkUsernameAvailability(final String username, final User user) {
