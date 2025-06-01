@@ -4,7 +4,7 @@ import io.github.jotabrc.config.DatabaseConfig;
 import io.github.jotabrc.config.DependencyInjection;
 import io.github.jotabrc.dto.RoleDto;
 import io.github.jotabrc.dto.UserAuthDto;
-import io.github.jotabrc.dto.UserDto;
+import io.github.jotabrc.dto.UserRegisterDto;
 import io.github.jotabrc.security.ApplicationContext;
 import io.github.jotabrc.service.RoleService;
 import io.github.jotabrc.service.RoleServiceImpl;
@@ -28,10 +28,7 @@ public class Main {
             migrateDb();
             addRole();
             addUser();
-            UserService userService = new UserServiceImpl(
-                    DependencyInjection.createUserRepository(),
-                    DependencyInjection.createRoleRepository(),
-                    ApplicationContext.getInstance());
+            UserService userService = new UserServiceImpl();
             userService.auth(
                     UserAuthDto
                             .builder()
@@ -66,7 +63,7 @@ public class Main {
      * AT 1 requirement.
      */
     private static void addRole() {
-        RoleService roleService = new RoleServiceImpl(DependencyInjection.createRoleRepository());
+        RoleService roleService = new RoleServiceImpl();
         try {
             roleService.add(
                     RoleDto
@@ -91,14 +88,10 @@ public class Main {
      * AT 1 requirement.
      */
     private static void addUser() {
-        UserService userService = new UserServiceImpl(
-                DependencyInjection.createUserRepository(),
-                DependencyInjection.createRoleRepository(),
-                ApplicationContext.getInstance()
-        );
+        UserService userService = new UserServiceImpl();
         try {
             userService.add(
-                    UserDto
+                    UserRegisterDto
                             .builder()
                             .username("example")
                             .email("email@email")

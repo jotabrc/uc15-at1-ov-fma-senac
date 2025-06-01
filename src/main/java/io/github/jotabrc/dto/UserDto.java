@@ -1,21 +1,16 @@
 package io.github.jotabrc.dto;
 
-import lombok.*;
-import lombok.experimental.Accessors;
+import lombok.Builder;
+import lombok.Getter;
 
 /**
- * UserDto Data Access Object.
+ * UserRegisterDto Data Access Object.
  */
 @Getter
-@Setter
 @Builder
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 public class UserDto {
 
-    private String username;
-    private String email;
-    private String name;
-    private String password;
+    private final String username;
+    private final String email;
+    private final String name;
 }

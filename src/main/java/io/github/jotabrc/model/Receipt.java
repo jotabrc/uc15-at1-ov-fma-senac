@@ -3,18 +3,18 @@ package io.github.jotabrc.model;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class Receipt extends FinancialEntity {
+public final class Receipt extends FinancialEntity {
 
     private String vendor;
 
-    public Receipt(long id, String uuid, long userId, BigDecimal amount, String description, ZonedDateTime createdAt,
-                   ZonedDateTime updatedAt, long version, String vendor) {
-        super(id, uuid, userId, amount, description, createdAt, updatedAt, version);
+    public Receipt(long id, UserFinance userFinance, LocalDate dueDate, double amount, String description, LocalDateTime createdAt,
+                   LocalDateTime updatedAt, long version, String vendor) {
+        super(id, userFinance, dueDate, amount, description, createdAt, updatedAt, version);
         this.vendor = vendor;
     }
 }

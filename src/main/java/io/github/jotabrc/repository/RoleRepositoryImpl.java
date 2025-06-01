@@ -1,18 +1,17 @@
 package io.github.jotabrc.repository;
 
-import io.github.jotabrc.config.DependencyInjection;
 import io.github.jotabrc.model.Role;
 import io.github.jotabrc.repository.util.DQML;
 import io.github.jotabrc.repository.util.PrepareStatement;
 import io.github.jotabrc.repository.util.SqlBuilder;
 import io.github.jotabrc.util.ConnectionUtil;
+import io.github.jotabrc.util.DependencySelectorImpl;
 import io.github.jotabrc.util.RoleName;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.Optional;
 
@@ -23,9 +22,9 @@ public class RoleRepositoryImpl implements RoleRepository {
     private final PrepareStatement prepareStatement;
 
     public RoleRepositoryImpl() {
-        this.connectionUtil = DependencyInjection.createConnectionUtil();
-        this.sqlBuilder = DependencyInjection.createSqlBuilder();
-        this.prepareStatement = DependencyInjection.createPrepareStatement();
+        this.connectionUtil = DependencySelectorImpl.getInstance().select(ConnectionUtil.class);
+        this.sqlBuilder = DependencySelectorImpl.getInstance().select(SqlBuilder.class);
+        this.prepareStatement = DependencySelectorImpl.getInstance().select(PrepareStatement.class);
     }
 
     @Override
@@ -114,10 +113,10 @@ public class RoleRepositoryImpl implements RoleRepository {
                     .name(RoleName.getRole(rs.getString("name")))
                     .description(rs.getString("description"))
                     .isActive(rs.getBoolean("is_active"))
-                    .createdAt(rs.getTimestamp("created_at").toLocalDateTime().atZone(ZoneId.of("UTC")))
+                    .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
                     .updatedAt(
                             rs.getTimestamp("updated_at") != null ?
-                                    rs.getTimestamp("updated_at").toLocalDateTime().atZone(ZoneId.of("UTC")) :
+                                    rs.getTimestamp("updated_at").toLocalDateTime() :
                                     null
                     )
                     .version(rs.getInt("version"))

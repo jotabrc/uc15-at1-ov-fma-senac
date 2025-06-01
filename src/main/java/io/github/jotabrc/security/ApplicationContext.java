@@ -1,5 +1,6 @@
 package io.github.jotabrc.security;
 
+import io.github.jotabrc.handler.UnauthorizedException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -14,11 +15,12 @@ public class ApplicationContext {
 
     private final AtomicReference<String> userUuid = new AtomicReference<>();
     private final AtomicReference<ZonedDateTime> expiration = new AtomicReference<>();
-    private static final ApplicationContext context = new ApplicationContext();
+    private static ApplicationContext context;
 
     private ApplicationContext() {}
 
     public static ApplicationContext getInstance() {
+        if (context == null) context = new ApplicationContext();
         return context;
     }
 
@@ -26,8 +28,8 @@ public class ApplicationContext {
         return Optional.ofNullable(this.userUuid.get());
     }
 
-    public ApplicationContext setUserUuid(final String uuid) {
-        this.userUuid.compareAndSet(null, uuid);
+    public ApplicationContext setUserUuid(final String userUuid) {
+        this.userUuid.compareAndSet(null, userUuid);
         return this;
     }
 
@@ -39,7 +41,7 @@ public class ApplicationContext {
     public void checkExpiration() {
         Optional.ofNullable(this.expiration.get())
                 .filter(expiration -> expiration.isAfter(LocalDateTime.now().atZone(ZoneId.systemDefault())))
-                .orElseThrow(() -> new RuntimeException("Not Authorized, authentication expired"));
+                .orElseThrow(() -> new UnauthorizedException("Authentication expired"));
     }
 
     public void reset() {

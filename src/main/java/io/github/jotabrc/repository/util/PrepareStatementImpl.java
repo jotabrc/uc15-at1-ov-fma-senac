@@ -15,14 +15,16 @@ public class PrepareStatementImpl implements PrepareStatement {
     public PreparedStatement prepare(PreparedStatement ps, LinkedHashMap<String, Object> values) throws SQLException {
         int index = 1;
         for (var value : values.values()) {
-            if (value instanceof String v) ps.setString(index, v);
-            else if (value instanceof Long v) ps.setLong(index, v);
-            else if (value instanceof Timestamp v) ps.setTimestamp(index, v);
-            else if (value instanceof Boolean v) ps.setBoolean(index, v);
-            else if (value instanceof Integer v) ps.setInt(index, v);
-            else if (value instanceof LocalDateTime v) ps.setTimestamp(index, Timestamp.from(Instant.from(v)));
-            else if (value instanceof RoleName v) ps.setString(index, v.getName());
-            else ps.setObject(index, value);
+            switch (value) {
+                case String v -> ps.setString(index, v);
+                case Long v -> ps.setLong(index, v);
+                case Timestamp v -> ps.setTimestamp(index, v);
+                case Boolean v -> ps.setBoolean(index, v);
+                case Integer v -> ps.setInt(index, v);
+                case LocalDateTime v -> ps.setTimestamp(index, Timestamp.from(Instant.from(v)));
+                case RoleName v -> ps.setString(index, v.getName());
+                case null, default -> ps.setObject(index, value);
+            }
             index++;
         }
 

@@ -1,9 +1,12 @@
 package io.github.jotabrc.repository.util;
 
+import io.github.jotabrc.annotation.ServicePriority;
+
 import java.util.LinkedHashMap;
 import java.util.StringJoiner;
 import java.util.stream.Stream;
 
+@ServicePriority(value = 0)
 public class SqlBuilderImpl implements SqlBuilder {
 
     @Override

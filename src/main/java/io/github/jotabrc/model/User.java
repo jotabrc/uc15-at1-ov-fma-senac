@@ -3,10 +3,10 @@ package io.github.jotabrc.model;
 import lombok.*;
 import lombok.experimental.Accessors;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 
 /**
- * UserDto Data Access Object.
+ * UserRegisterDto Data Access Object.
  */
 @Getter
 @Setter
@@ -26,7 +26,7 @@ public class User {
     private String salt;
     private String hash;
     private boolean isActive;
-    private ZonedDateTime createdAt;
-    private ZonedDateTime updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private long version;
 }

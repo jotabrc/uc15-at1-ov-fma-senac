@@ -2,19 +2,28 @@ package io.github.jotabrc.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import java.math.BigDecimal;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public abstract class Recurrence extends FinancialEntity {
+@Accessors(chain = true)
+public sealed abstract class Recurrence extends FinancialEntity permits RecurringPayment, RecurringReceipt {
 
-    private ZonedDateTime recurringUntil;
+    private LocalDate recurringUntil;
 
-    public Recurrence(long id, String uuid, long userId, BigDecimal amount, String description, ZonedDateTime createdAt,
-                      ZonedDateTime updatedAt, long version, ZonedDateTime recurringUntil) {
-        super(id, uuid, userId, amount, description, createdAt, updatedAt, version);
+    public Recurrence(long id,
+                      UserFinance userFinance,
+                      LocalDate dueDate,
+                      double amount,
+                      String description,
+                      LocalDateTime createdAt,
+                      LocalDateTime updatedAt,
+                      long version,
+                      LocalDate recurringUntil) {
+        super(id, userFinance, dueDate, amount, description, createdAt, updatedAt, version);
         this.recurringUntil = recurringUntil;
     }
 }

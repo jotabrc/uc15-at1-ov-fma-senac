@@ -2,6 +2,7 @@ package io.github.jotabrc.service;
 
 import io.github.jotabrc.dto.UserAuthDto;
 import io.github.jotabrc.dto.UserDto;
+import io.github.jotabrc.dto.UserRegisterDto;
 import io.github.jotabrc.model.Role;
 import io.github.jotabrc.model.User;
 import io.github.jotabrc.repository.RoleRepository;
@@ -14,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -46,7 +46,7 @@ public class UserServiceImplTest {
         when(userRepository.existsByUsername(any())).thenReturn(false);
         when(userRepository.save(any(), any())).thenReturn(null);
         when(roleRepository.findByName(any())).thenReturn(Optional.of(new Role()));
-        String uuid = userService.add(UserDto
+        String uuid = userService.add(UserRegisterDto
                 .builder()
                 .username("username")
                 .email("email@email.com")
@@ -68,18 +68,18 @@ public class UserServiceImplTest {
                 .salt("salt")
                 .hash("hash")
                 .isActive(true)
-                .createdAt(LocalDateTime.of(1992, 2, 18, 0, 0).atZone(ZoneId.of("UTC")))
+                .createdAt(LocalDateTime.of(1992, 2, 18, 0, 0))
                 .updatedAt(null)
                 .version(0)
                 .build();
         doNothing().when(applicationContext).checkExpiration();
-        when(applicationContext.getUserUuid()).thenReturn(Optional.of("uuid"));
+        when(applicationContext.getUserUuid()).thenReturn(Optional.of("userUuid"));
         when(userRepository.findByUuid(any())).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail(any())).thenReturn(false);
         when(userRepository.existsByUsername(any())).thenReturn(false);
         when(userRepository.save(any(), any())).thenReturn(null);
         try {
-            userService.update(UserDto
+            userService.update(UserRegisterDto
                     .builder()
                     .username("username")
                     .email("email@email.com")
@@ -100,7 +100,7 @@ public class UserServiceImplTest {
 
     @Test
     public void auth() {
-        ApplicationContext appc = ApplicationContext.getInstance().setUserUuid("uuid");
+        ApplicationContext appc = ApplicationContext.getInstance().setUserUuid("userUuid");
         when(applicationContext.setUserUuid(any())).thenReturn(appc);
         when(applicationContext.setExpiration(any())).thenReturn(appc);
         when(userRepository.findByEmail(any())).thenReturn(Optional.ofNullable(
@@ -135,12 +135,12 @@ public class UserServiceImplTest {
                 .salt("salt")
                 .hash("hash")
                 .isActive(true)
-                .createdAt(LocalDateTime.of(1992, 2, 18, 0, 0).atZone(ZoneId.of("UTC")))
+                .createdAt(LocalDateTime.of(1992, 2, 18, 0, 0))
                 .updatedAt(null)
                 .version(0)
                 .build();
         doNothing().when(applicationContext).checkExpiration();
-        when(applicationContext.getUserUuid()).thenReturn(Optional.of("uuid"));
+        when(applicationContext.getUserUuid()).thenReturn(Optional.of("userUuid"));
         when(userRepository.findByUuid(any())).thenReturn(Optional.of(user));
         UserDto dto = userService.findByUuid();
         assert dto.getEmail().equals("sample@sample");

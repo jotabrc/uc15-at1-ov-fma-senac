@@ -2,24 +2,19 @@ package io.github.jotabrc.service;
 
 import io.github.jotabrc.dto.UserAuthDto;
 import io.github.jotabrc.dto.UserDto;
+import io.github.jotabrc.dto.UserRegisterDto;
 import io.github.jotabrc.model.Role;
 import io.github.jotabrc.model.User;
 import io.github.jotabrc.repository.RoleRepository;
 import io.github.jotabrc.repository.UserRepository;
 import io.github.jotabrc.repository.util.DQML;
-import io.github.jotabrc.security.ApplicationContext;
-import io.github.jotabrc.util.RoleName;
+import io.github.jotabrc.security.ApplicationContextHolder;
+import io.github.jotabrc.util.*;
 import lombok.extern.slf4j.Slf4j;
 
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Base64;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,16 +23,16 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final ApplicationContext applicationContext;
+    private final ApplicationContextHolder applicationContextHolder;
 
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, ApplicationContext applicationContext) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.applicationContext = applicationContext;
+    public UserServiceImpl() {
+        this.userRepository = DependencySelectorImpl.getInstance().select(UserRepository.class);
+        this.roleRepository = DependencySelectorImpl.getInstance().select(RoleRepository.class);
+        this.applicationContextHolder =  DependencySelectorImpl.getInstance().select(ApplicationContextHolder.class);;
     }
 
     @Override
-    public String add(UserDto dto) {
+    public String add(UserRegisterDto dto) {
         try {
             checkAvailability(dto, null);
             User user = buildUser(dto);
@@ -49,43 +44,38 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void update(UserDto dto) throws Exception {
-        applicationContext.checkExpiration();
-        String uuid = getContextUuid();
-        User user = getUserWithUuid(uuid);
-        checkAvailability(dto, user);
+    public void update(UserRegisterDto dto) throws Exception {
+        try {
+            applicationContextHolder.authIsActive();
+            String userUuid = applicationContextHolder.getContextDetail();
+            User user = getUserWithUuid(userUuid);
+            checkAvailability(dto, user);
 
-        SaltAndHash saltAndHash = getSaltAndHash(dto);
-        user
-                .setUsername(dto.getUsername())
-                .setEmail(dto.getEmail())
-                .setName(dto.getName())
-                .setSalt(saltAndHash.encodedSalt())
-                .setHash(saltAndHash.hash())
-                .setUpdatedAt(LocalDateTime.now().atZone(ZoneId.of("UTC")))
-                .setVersion(user.getVersion() + 1);
+            PasswordUtil.SaltAndHash saltAndHash = PasswordUtil.getSaltAndHash(dto);
+            updateUser(dto, user, saltAndHash);
 
-        userRepository.save(user, DQML.UPDATE);
+            userRepository.save(user, DQML.UPDATE);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void auth(UserAuthDto dto) throws Exception {
         User user = getUserWithEmail(dto.getEmail());
-        userAuth(dto.getPassword(), user.getSalt(), user.getHash());
-        applicationContext
-                .setUserUuid(user.getUuid())
-                .setExpiration(LocalDateTime.now().plusHours(1).atZone(ZoneId.systemDefault()));
+        applicationContextHolder.auth(dto.getPassword(), user.getSalt(), user.getHash());
+        applicationContextHolder.setContext(user.getUuid());
     }
 
     @Override
     public UserDto findByUuid() {
-        applicationContext.checkExpiration();
-        String uuid = getContextUuid();
-        User user = getUserWithUuid(uuid);
-        return toDto(user);
+        applicationContextHolder.authIsActive();
+        String userUuid = applicationContextHolder.getContextDetail();
+        User user = getUserWithUuid(userUuid);
+        return DtoMapper.toDto(user);
     }
 
-    private void checkAvailability(final UserDto dto, final User user) {
+    private void checkAvailability(final UserRegisterDto dto, final User user) {
         CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> checkUsernameAvailability(dto.getUsername(), user))
                 .exceptionally(ex -> {
                     log.error("Error checking username availability: {}", ex.getMessage());
@@ -116,32 +106,11 @@ public class UserServiceImpl implements UserService {
         return "";
     }
 
-    private User buildUser(final UserDto dto) throws Exception {
-        SaltAndHash saltAndHash = getSaltAndHash(dto);
+    private User buildUser(final UserRegisterDto dto) throws Exception {
         Role role = getRoleUser();
-
-        return User
-                .builder()
-                .uuid(UUID.randomUUID().toString())
-                .username(dto.getUsername())
-                .email(dto.getEmail())
-                .name(dto.getName())
-                .role(role)
-                .isActive(true)
-                .hash(saltAndHash.hash())
-                .salt(saltAndHash.encodedSalt())
-                .createdAt(LocalDateTime.now().atZone(ZoneId.of("UTC")))
-                .build();
-    }
-
-    private SaltAndHash getSaltAndHash(final UserDto dto) throws NoSuchAlgorithmException {
-        byte[] salt = getSalt();
-        String encodedSalt = getEncodedSalt(salt);
-        String hash = getHash(dto.getPassword(), salt);
-        return new SaltAndHash(encodedSalt, hash);
-    }
-
-    private record SaltAndHash(String encodedSalt, String hash) {
+        User user = EntityMapper.toEntity(dto);
+        user.setRole(role);
+        return user;
     }
 
     private Role getRoleUser() throws Exception {
@@ -149,41 +118,9 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new Exception("Role USER not found"));
     }
 
-    private void userAuth(final String password, final String salt, final String hash) throws NoSuchAlgorithmException {
-        String hashed = getHash(password, salt);
-        if (!hashed.equals(hash)) throw new RuntimeException("Authentication Denied");
-    }
-
-    private String getEncodedSalt(final byte[] salt) throws NoSuchAlgorithmException {
-        return Base64.getEncoder().encodeToString(salt);
-    }
-
-    private byte[] getSalt() throws NoSuchAlgorithmException {
-        SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
-        byte[] salt = new byte[32];
-        sr.nextBytes(salt);
-        return salt;
-    }
-
-    private String getHash(final String password, final byte[] salt) throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("SHA-512");
-        md.update(salt);
-        byte[] hashedPassword = md.digest(password.getBytes());
-        return Base64.getEncoder().encodeToString(hashedPassword);
-    }
-
-    private String getHash(final String password, final String salt) throws NoSuchAlgorithmException {
-        byte[] saltByte = Base64.getDecoder().decode(salt);
-        return getHash(password, saltByte);
-    }
-
-    private String getContextUuid() {
-        return applicationContext.getUserUuid().orElseThrow(() -> new RuntimeException("Access denied"));
-    }
-
-    private User getUserWithUuid(final String uuid) {
-        return userRepository.findByUuid(uuid)
-                .orElseThrow(() -> new RuntimeException("User with UUID %s not found".formatted(uuid)));
+    private User getUserWithUuid(final String userUuid) {
+        return userRepository.findByUuid(userUuid)
+                .orElseThrow(() -> new RuntimeException("User with UUID %s not found".formatted(userUuid)));
     }
 
     private User getUserWithEmail(final String email) {
@@ -191,15 +128,14 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("User with EMAIL %s not found".formatted(email)));
     }
 
-    private UserDto toDto(final User user) {
-        Function<User, UserDto> fn = (u) ->
-                UserDto
-                        .builder()
-                        .username(u.getUsername())
-                        .email(u.getEmail())
-                        .name(u.getName())
-                        .password(null)
-                        .build();
-        return fn.apply(user);
+    private static void updateUser(UserRegisterDto dto, User user, PasswordUtil.SaltAndHash saltAndHash) {
+        user
+                .setUsername(dto.getUsername())
+                .setEmail(dto.getEmail())
+                .setName(dto.getName())
+                .setSalt(saltAndHash.encodedSalt())
+                .setHash(saltAndHash.hash())
+                .setUpdatedAt(LocalDateTime.now())
+                .setVersion(user.getVersion() + 1);
     }
 }

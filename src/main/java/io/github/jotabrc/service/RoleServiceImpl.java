@@ -3,17 +3,15 @@ package io.github.jotabrc.service;
 import io.github.jotabrc.dto.RoleDto;
 import io.github.jotabrc.model.Role;
 import io.github.jotabrc.repository.RoleRepository;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.UUID;
+import io.github.jotabrc.util.DependencySelectorImpl;
+import io.github.jotabrc.util.EntityMapper;
 
 public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
 
-    public RoleServiceImpl(RoleRepository roleRepository) {
-        this.roleRepository = roleRepository;
+    public RoleServiceImpl() {
+        this.roleRepository = DependencySelectorImpl.getInstance().select(RoleRepository.class);
     }
 
     @Override
@@ -29,14 +27,6 @@ public class RoleServiceImpl implements RoleService {
     }
 
     private Role buildRole(final RoleDto dto) {
-        return Role
-                .builder()
-                .uuid(UUID.randomUUID().toString())
-                .name(dto.getName())
-                .description(dto.getDescription())
-                .isActive(true)
-                .createdAt(LocalDateTime.now().atZone(ZoneId.of("UTC")))
-                .version(0)
-                .build();
+        return EntityMapper.toEntity(dto);
     }
 }

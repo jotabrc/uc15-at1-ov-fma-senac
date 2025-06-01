@@ -7,12 +7,9 @@ import lombok.*;
  * Role Data Access Object.
  */
 @Getter
-@Setter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
 public class RoleDto {
 
-    private RoleName name;
-    private String description;
+    private final RoleName name;
+    private final String description;
 }
