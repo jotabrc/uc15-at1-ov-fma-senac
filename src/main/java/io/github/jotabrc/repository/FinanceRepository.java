@@ -12,6 +12,6 @@ public interface FinanceRepository {
 
     void save(String userUuid, DQML dqml, Connection conn);
     Map<String, String> findByUserUuid(String userUuid);
-    Optional<String> getUserUuid(String financialEntityUuid);
+    Optional<String> getFinancialEntityUserUuid(String financialEntityUuid);
     Optional<UserFinance> findByFilter(PageFilter pageFilter);
 }

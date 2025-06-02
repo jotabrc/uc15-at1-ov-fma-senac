@@ -46,6 +46,12 @@ public class SqlBuilderImpl implements SqlBuilder {
                         .append(table);
                 buildConditions(conditions, sql);
             }
+            case "DELETE" -> {
+                sql
+                        .append("DELETE FROM ")
+                        .append(table);
+                buildConditions(conditions, sql);
+            }
         }
         return sql.toString();
     }

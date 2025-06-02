@@ -214,6 +214,6 @@ public class UserRepositoryImpl implements UserRepository {
 
     private Role getRoleUser(final String uuid) throws Exception {
         return roleRepository.findByUuid(uuid)
-                .orElseThrow(() -> new Exception("Role with UUID %d not found".formatted(uuid)));
+                .orElseThrow(() -> new Exception("Role with UUID %s not found".formatted(uuid)));
     }
 }

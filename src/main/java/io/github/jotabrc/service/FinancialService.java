@@ -5,7 +5,7 @@ import io.github.jotabrc.model.Payment;
 
 import java.util.Optional;
 
-public sealed interface PaymentService permits PaymentServiceImpl {
+public sealed interface FinancialService permits FinancialServiceImpl {
 
     void save(PaymentDto dto);
     void update(String uuid, PaymentDto dto);

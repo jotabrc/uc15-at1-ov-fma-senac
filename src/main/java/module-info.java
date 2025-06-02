@@ -1,3 +1,6 @@
+import io.github.jotabrc.service.FinancialService;
+import io.github.jotabrc.service.FinancialServiceImpl;
+
 open module uc.fifteen.at.one.ov.fma.senac {
     requires flyway.core;
     requires transitive java.sql;
@@ -46,9 +49,9 @@ open module uc.fifteen.at.one.ov.fma.senac {
     provides io.github.jotabrc.service.FinanceService
             with io.github.jotabrc.service.FinanceServiceImpl;
 
-    uses io.github.jotabrc.service.PaymentService;
-    provides io.github.jotabrc.service.PaymentService
-            with io.github.jotabrc.service.PaymentServiceImpl;
+    uses FinancialService;
+    provides FinancialService
+            with FinancialServiceImpl;
 
     uses io.github.jotabrc.service.ReceiptService;
     provides io.github.jotabrc.service.ReceiptService

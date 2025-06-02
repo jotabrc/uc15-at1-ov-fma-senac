@@ -9,6 +9,7 @@ import io.github.jotabrc.repository.util.SqlBuilder;
 import io.github.jotabrc.util.ConnectionUtil;
 import io.github.jotabrc.util.DependencySelectorImpl;
 import io.github.jotabrc.util.ResultSetMapper;
+import io.github.jotabrc.util.TableName;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -34,7 +35,11 @@ public class FinanceRepositoryImpl implements FinanceRepository {
 
         String sql;
         switch (dqml) {
-            case INSERT -> sql = sqlBuilder.build(dqml.getType(), "tb_user_finance", columnsAndValues);
+            case INSERT -> sql = sqlBuilder.build(
+                    dqml.getType(),
+                    TableName.TB_USER_FINANCE.getTable(),
+                    columnsAndValues
+            );
             case null, default -> throw new IllegalArgumentException("Operation not supported");
         }
 
@@ -53,9 +58,10 @@ public class FinanceRepositoryImpl implements FinanceRepository {
             conditions.put("user_uuid", userUuid);
             String sql = sqlBuilder.build(
                     DQML.SELECT.getType(),
-                    "tb_user_finance",
+                    TableName.TB_USER_FINANCE.getTable(),
                     conditions,
-                    new String[]{"uuid", "user_finance_uuid"});
+                    new String[]{"uuid", "user_finance_uuid"}
+            );
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 prepareStatement.prepare(ps, conditions);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -75,7 +81,7 @@ public class FinanceRepositoryImpl implements FinanceRepository {
     }
 
     @Override
-    public Optional<String> getUserUuid(final String financialEntityUuid) {
+    public Optional<String> getFinancialEntityUserUuid(final String financialEntityUuid) {
         try (Connection conn = connectionUtil.getCon()) {
             LinkedHashMap<String, Object> conditions = new LinkedHashMap<>();
             conditions.put("uuid", financialEntityUuid);

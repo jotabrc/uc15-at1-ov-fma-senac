@@ -9,7 +9,8 @@ public enum DQML {
 
     INSERT("INSERT"),
     UPDATE("UPDATE"),
-    SELECT("SELECT");
+    SELECT("SELECT"),
+    DELETE("DELETE");
 
     private final String type;
 }
