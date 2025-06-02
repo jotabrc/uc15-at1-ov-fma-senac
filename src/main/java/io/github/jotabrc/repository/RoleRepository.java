@@ -8,6 +8,6 @@ public interface RoleRepository {
 
     String save(final Role role);
     Optional<Role> findByName(final String name);
-    Optional<Role> findById(final long id);
+    Optional<Role> findByUuid(final String uuid);
     boolean existsByName(final String name);
 }

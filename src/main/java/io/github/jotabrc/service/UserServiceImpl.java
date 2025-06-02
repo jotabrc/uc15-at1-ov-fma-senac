@@ -108,7 +108,7 @@ public class UserServiceImpl implements UserService {
 
     private User buildUser(final UserRegisterDto dto) throws Exception {
         Role role = getRoleUser();
-        User user = EntityMapper.toEntity(dto);
+        User user = EntityCreator.toEntity(dto);
         user.setRole(role);
         return user;
     }

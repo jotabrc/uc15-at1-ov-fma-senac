@@ -14,8 +14,8 @@ public sealed abstract class Recurrence extends FinancialEntity permits Recurrin
 
     private LocalDate recurringUntil;
 
-    public Recurrence(long id,
-                      UserFinance userFinance,
+    public Recurrence(String uuid,
+                      String userFinanceUuid,
                       LocalDate dueDate,
                       double amount,
                       String description,
@@ -23,7 +23,7 @@ public sealed abstract class Recurrence extends FinancialEntity permits Recurrin
                       LocalDateTime updatedAt,
                       long version,
                       LocalDate recurringUntil) {
-        super(id, userFinance, dueDate, amount, description, createdAt, updatedAt, version);
+        super(uuid, userFinanceUuid, dueDate, amount, description, createdAt, updatedAt, version);
         this.recurringUntil = recurringUntil;
     }
 }

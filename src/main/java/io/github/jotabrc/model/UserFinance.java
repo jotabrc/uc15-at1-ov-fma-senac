@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public final class UserFinance {
 
-    private long id;
+    private String uuid;
     private String userUuid;
     private List<FinancialEntity> financialItems;
     private LocalDateTime createdAt;

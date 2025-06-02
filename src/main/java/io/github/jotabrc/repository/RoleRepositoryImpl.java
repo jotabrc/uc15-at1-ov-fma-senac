@@ -69,10 +69,10 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
-    public Optional<Role> findById(long id) {
+    public Optional<Role> findByUuid(String uuid) {
         try (Connection conn = connectionUtil.getCon()) {
             LinkedHashMap<String, Object> conditions = new LinkedHashMap<>();
-            conditions.put("id", id);
+            conditions.put("uuid", uuid);
             String sql = sqlBuilder.build(DQML.SELECT.getType(), "tb_role", conditions, new String[]{"*"});
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 prepareStatement.prepare(ps, conditions);
@@ -108,7 +108,6 @@ public class RoleRepositoryImpl implements RoleRepository {
         if (rs.next()) {
             return Role
                     .builder()
-                    .id(rs.getLong("id"))
                     .uuid(rs.getString("uuid"))
                     .name(RoleName.getRole(rs.getString("name")))
                     .description(rs.getString("description"))

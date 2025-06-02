@@ -15,10 +15,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Role {
 
-    // Role relational ID
-    // AUTO_INCREMENT
-    // BIGINT
-    private long id;
     private String uuid;
     private RoleName name;
     private String description;

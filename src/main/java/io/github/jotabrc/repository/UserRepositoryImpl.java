@@ -167,7 +167,7 @@ public class UserRepositoryImpl implements UserRepository {
         columnsAndValues.put("username", user.getUsername());
         columnsAndValues.put("email", user.getEmail());
         columnsAndValues.put("name", user.getName());
-        columnsAndValues.put("role_id", user.getRole().getId());
+        columnsAndValues.put("role_uuid", user.getRole().getUuid());
         columnsAndValues.put("salt", user.getSalt());
         columnsAndValues.put("hash", user.getHash());
         columnsAndValues.put("is_active", user.isActive());
@@ -188,10 +188,10 @@ public class UserRepositoryImpl implements UserRepository {
 
     private User buildUser(ResultSet rs) throws Exception {
         if (rs.next()) {
-            Role role = getRoleUser(rs.getLong("role_id"));
+            Role role = getRoleUser(rs.getString("role_uuid"));
             return User
                     .builder()
-                    .id(rs.getLong("id"))
+                    .uuid(rs.getString("uuid"))
                     .uuid(rs.getString("uuid"))
                     .username(rs.getString("username"))
                     .email(rs.getString("email"))
@@ -212,8 +212,8 @@ public class UserRepositoryImpl implements UserRepository {
         return null;
     }
 
-    private Role getRoleUser(final long id) throws Exception {
-        return roleRepository.findById(id)
-                .orElseThrow(() -> new Exception("Role with ID %d not found".formatted(id)));
+    private Role getRoleUser(final String uuid) throws Exception {
+        return roleRepository.findByUuid(uuid)
+                .orElseThrow(() -> new Exception("Role with UUID %d not found".formatted(uuid)));
     }
 }

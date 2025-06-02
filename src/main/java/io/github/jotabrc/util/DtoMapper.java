@@ -22,7 +22,7 @@ public class DtoMapper {
     public static UserFinanceDto toDto(final UserFinance userFinance) {
         return UserFinanceDto
                 .builder()
-                .userId(userFinance.getUserId())
+                .userUuid(userFinance.getUserUuid())
                 .financialItems(
                         Optional.of(
                                 userFinance.getFinancialItems()

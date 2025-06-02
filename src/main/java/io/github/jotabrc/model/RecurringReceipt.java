@@ -14,8 +14,8 @@ public final class RecurringReceipt extends Recurrence {
 
     private String vendor;
 
-    public RecurringReceipt(long id,
-                            UserFinance userFinance,
+    public RecurringReceipt(String uuid,
+                            String userFinanceUuid,
                             LocalDate dueDate,
                             double amount,
                             String description,
@@ -24,7 +24,7 @@ public final class RecurringReceipt extends Recurrence {
                             long version,
                             LocalDate recurringUntil,
                             String vendor) {
-        super(id, userFinance, dueDate, amount, description, createdAt, updatedAt, version, recurringUntil);
+        super(uuid, userFinanceUuid, dueDate, amount, description, createdAt, updatedAt, version, recurringUntil);
         this.vendor = vendor;
     }
 }

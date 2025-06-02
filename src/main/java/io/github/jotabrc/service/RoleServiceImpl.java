@@ -4,7 +4,7 @@ import io.github.jotabrc.dto.RoleDto;
 import io.github.jotabrc.model.Role;
 import io.github.jotabrc.repository.RoleRepository;
 import io.github.jotabrc.util.DependencySelectorImpl;
-import io.github.jotabrc.util.EntityMapper;
+import io.github.jotabrc.util.EntityCreator;
 
 public class RoleServiceImpl implements RoleService {
 
@@ -27,6 +27,6 @@ public class RoleServiceImpl implements RoleService {
     }
 
     private Role buildRole(final RoleDto dto) {
-        return EntityMapper.toEntity(dto);
+        return EntityCreator.toEntity(dto);
     }
 }

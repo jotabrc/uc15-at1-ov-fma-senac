@@ -1,24 +1,26 @@
 package io.github.jotabrc.model;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @Accessors(chain = true)
-@Builder
+@AllArgsConstructor
 public sealed abstract class FinancialEntity
         permits Payment, Receipt, Recurrence {
 
-    private final long id;
-    private final UserFinance userFinance;
-    private final LocalDate dueDate;
-    private final double amount;
-    private final String description;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
-    private final long version;
+    private String uuid;
+    private String userFinanceUuid;
+    private LocalDate dueDate;
+    private double amount;
+    private String description;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private long version;
 }
