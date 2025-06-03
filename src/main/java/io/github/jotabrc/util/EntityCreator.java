@@ -1,11 +1,7 @@
 package io.github.jotabrc.util;
 
-import io.github.jotabrc.dto.PaymentDto;
-import io.github.jotabrc.dto.RoleDto;
-import io.github.jotabrc.dto.UserRegisterDto;
-import io.github.jotabrc.model.Payment;
-import io.github.jotabrc.model.Role;
-import io.github.jotabrc.model.User;
+import io.github.jotabrc.dto.*;
+import io.github.jotabrc.model.*;
 
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -42,10 +38,20 @@ public class EntityCreator {
                 .build();
     }
 
-    public static Payment toEntity(final PaymentDto dto, final String uuid, final String userFinanceUuid) {
+    public static FinancialEntity toEntity(final FinancialEntityDto dto, final String userFinanceUuid) {
+        return switch (dto) {
+            case PaymentDto e -> toEntity(e).setUserFinanceUuid(userFinanceUuid);
+            case ReceiptDto e -> toEntity(e).setUserFinanceUuid(userFinanceUuid);
+            case RecurringPaymentDto e -> toEntity(e).setUserFinanceUuid(userFinanceUuid);
+            case RecurringReceiptDto e -> toEntity(e).setUserFinanceUuid(userFinanceUuid);
+            case null, default -> throw new IllegalArgumentException("Entity type not supported");
+        };
+    }
+
+    public static Payment toEntity(PaymentDto dto) {
         return new Payment(
-                uuid,
-                userFinanceUuid,
+                UUID.randomUUID().toString(),
+                null,
                 dto.getDueDate(),
                 dto.getAmount(),
                 dto.getDescription(),
@@ -53,6 +59,50 @@ public class EntityCreator {
                 LocalDateTime.now(),
                 0,
                 dto.getPayee()
-                );
+        );
+    }
+
+    public static Receipt toEntity(ReceiptDto dto) {
+        return new Receipt(
+                UUID.randomUUID().toString(),
+                null,
+                dto.getDueDate(),
+                dto.getAmount(),
+                dto.getDescription(),
+                null,
+                LocalDateTime.now(),
+                0,
+                dto.getVendor()
+        );
+    }
+
+    public static RecurringPayment toEntity(RecurringPaymentDto dto) {
+        return new RecurringPayment(
+                UUID.randomUUID().toString(),
+                null,
+                dto.getDueDate(),
+                dto.getAmount(),
+                dto.getDescription(),
+                null,
+                LocalDateTime.now(),
+                0,
+                dto.getRecurringUntil(),
+                dto.getPayee()
+        );
+    }
+
+    public static RecurringReceipt toEntity(RecurringReceiptDto dto) {
+        return new RecurringReceipt(
+                UUID.randomUUID().toString(),
+                null,
+                dto.getDueDate(),
+                dto.getAmount(),
+                dto.getDescription(),
+                null,
+                LocalDateTime.now(),
+                0,
+                dto.getRecurringUntil(),
+                dto.getVendor()
+        );
     }
 }

@@ -1,6 +1,3 @@
-import io.github.jotabrc.service.FinancialService;
-import io.github.jotabrc.service.FinancialServiceImpl;
-
 open module uc.fifteen.at.one.ov.fma.senac {
     requires flyway.core;
     requires transitive java.sql;
@@ -29,6 +26,10 @@ open module uc.fifteen.at.one.ov.fma.senac {
     provides io.github.jotabrc.repository.FinanceRepository
             with io.github.jotabrc.repository.FinanceRepositoryImpl;
 
+    uses io.github.jotabrc.repository.FinancialRepository;
+    provides io.github.jotabrc.repository.FinancialRepository
+            with io.github.jotabrc.repository.FinancialRepositoryImpl;
+
     uses io.github.jotabrc.repository.util.PrepareStatement;
     provides io.github.jotabrc.repository.util.PrepareStatement
             with io.github.jotabrc.repository.util.PrepareStatementImpl;
@@ -49,21 +50,9 @@ open module uc.fifteen.at.one.ov.fma.senac {
     provides io.github.jotabrc.service.FinanceService
             with io.github.jotabrc.service.FinanceServiceImpl;
 
-    uses FinancialService;
-    provides FinancialService
-            with FinancialServiceImpl;
-
-    uses io.github.jotabrc.service.ReceiptService;
-    provides io.github.jotabrc.service.ReceiptService
-            with io.github.jotabrc.service.ReceiptServiceImpl;
-
-    uses io.github.jotabrc.service.RecurringReceiptService;
-    provides io.github.jotabrc.service.RecurringReceiptService
-            with io.github.jotabrc.service.RecurringReceiptServiceImpl;
-
-    uses io.github.jotabrc.service.RecurringPaymentService;
-    provides io.github.jotabrc.service.RecurringPaymentService
-            with io.github.jotabrc.service.RecurringPaymentServiceImpl;
+    uses io.github.jotabrc.service.FinancialService;
+    provides io.github.jotabrc.service.FinancialService
+            with io.github.jotabrc.service.FinancialServiceImpl;
 
     uses io.github.jotabrc.util.ConnectionUtil;
     provides io.github.jotabrc.util.ConnectionUtil

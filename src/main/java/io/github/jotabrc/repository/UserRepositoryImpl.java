@@ -10,9 +10,10 @@ import io.github.jotabrc.service.FinanceService;
 import io.github.jotabrc.util.ConnectionUtil;
 import io.github.jotabrc.util.DependencySelectorImpl;
 
-import java.sql.*;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Optional;
 
@@ -79,7 +80,7 @@ public class UserRepositoryImpl implements UserRepository {
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 prepareStatement.prepare(ps, conditions);
                 try (ResultSet rs = ps.executeQuery()) {
-                    User user = null;
+                    User user;
                     user = buildUser(rs);
                     return Optional.ofNullable(user);
                 } catch (Exception e) {
@@ -100,7 +101,7 @@ public class UserRepositoryImpl implements UserRepository {
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 prepareStatement.prepare(ps, conditions);
                 try (ResultSet rs = ps.executeQuery()) {
-                    User user = null;
+                    User user;
                     user = buildUser(rs);
                     return Optional.ofNullable(user);
                 } catch (Exception e) {
@@ -122,7 +123,7 @@ public class UserRepositoryImpl implements UserRepository {
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 prepareStatement.prepare(ps, conditions);
                 try (ResultSet rs = ps.executeQuery()) {
-                    User user = null;
+                    User user;
                     user = buildUser(rs);
                     return Optional.ofNullable(user);
                 } catch (Exception e) {
@@ -171,7 +172,7 @@ public class UserRepositoryImpl implements UserRepository {
         columnsAndValues.put("salt", user.getSalt());
         columnsAndValues.put("hash", user.getHash());
         columnsAndValues.put("is_active", user.isActive());
-        columnsAndValues.put("created_at", Timestamp.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        columnsAndValues.put("updated_at", user.getUpdatedAt());
         columnsAndValues.put("version", 0);
     }
 

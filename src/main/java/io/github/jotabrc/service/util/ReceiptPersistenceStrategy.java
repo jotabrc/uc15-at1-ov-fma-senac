@@ -45,27 +45,27 @@ public class ReceiptPersistenceStrategy implements FinancePersistenceStrategy<Re
             final LinkedHashMap<String, Object> conditions,
             final DQML dqml) throws SQLException {
 
-        String tb = sqlBuilder.build(
-                dqml.getType(),
-                TB_RECEIPT.getTable(),
-                columnsAndValues != null ? columnsAndValues.get(TB_RECEIPT) : null,
-                conditions
-        );
-        PreparedStatement ps1 = conn.prepareStatement(tb);
-        prepareStatement.prepare(
-                ps1,
-                columnsAndValues != null ? columnsAndValues.get(TB_RECEIPT) : conditions);
-
         String tbFinancialEntity = sqlBuilder.build(
                 dqml.getType(),
                 TableName.TB_FINANCIAL_ENTITY.getTable(),
                 columnsAndValues != null ? columnsAndValues.get(TableName.TB_FINANCIAL_ENTITY) : null,
                 conditions
         );
-        PreparedStatement ps2 = conn.prepareStatement(tbFinancialEntity);
+        PreparedStatement ps1 = conn.prepareStatement(tbFinancialEntity);
+        prepareStatement.prepare(
+                ps1,
+                columnsAndValues != null ? columnsAndValues.get(TableName.TB_FINANCIAL_ENTITY) : conditions);
+
+        String tb = sqlBuilder.build(
+                dqml.getType(),
+                TB_RECEIPT.getTable(),
+                columnsAndValues != null ? columnsAndValues.get(TB_RECEIPT) : null,
+                conditions
+        );
+        PreparedStatement ps2 = conn.prepareStatement(tb);
         prepareStatement.prepare(
                 ps2,
-                columnsAndValues != null ? columnsAndValues.get(TableName.TB_FINANCIAL_ENTITY) : conditions);
+                columnsAndValues != null ? columnsAndValues.get(TB_RECEIPT) : conditions);
         return List.of(ps1, ps2);
     }
 }

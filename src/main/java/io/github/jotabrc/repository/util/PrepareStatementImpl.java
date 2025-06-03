@@ -6,7 +6,6 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -23,7 +22,7 @@ public class PrepareStatementImpl implements PrepareStatement {
                 case Timestamp v -> ps.setTimestamp(index, v);
                 case Boolean v -> ps.setBoolean(index, v);
                 case Integer v -> ps.setInt(index, v);
-                case LocalDateTime v -> ps.setTimestamp(index, Timestamp.from(Instant.from(v)));
+                case LocalDateTime v -> ps.setTimestamp(index, Timestamp.valueOf(v));
                 case LocalDate v -> ps.setDate(index, Date.valueOf(v));
                 case RoleName v -> ps.setString(index, v.getName());
                 case Date v -> ps.setDate(index, v);

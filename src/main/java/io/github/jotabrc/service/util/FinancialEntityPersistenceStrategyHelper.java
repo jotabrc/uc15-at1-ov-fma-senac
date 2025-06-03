@@ -38,7 +38,7 @@ public class FinancialEntityPersistenceStrategyHelper {
             case INSERT -> {
                 columnsAndValues = financePersistenceStrategy.generateMap(entity);
             }
-            case UPDATE, DELETE -> {
+            case UPDATE, DELETE, SELECT -> {
                 conditions = FinancialEntityPersistenceStrategyHelper.generateConditions(entity.getUuid());
             }
         }

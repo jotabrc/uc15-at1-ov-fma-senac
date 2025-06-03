@@ -73,3 +73,9 @@ CREATE TABLE IF NOT EXISTS tb_recurrence (
     recurring_until DATE NOT NULL,
     FOREIGN KEY (uuid) REFERENCES tb_financial_entity (uuid)
 );
+
+INSERT INTO tb_role (uuid, name, description, is_active) VALUES ("006bf07f-76b5-4fb6-9fea-a6072acf1c14", "USER", "user role", true);
+INSERT INTO tb_user (uuid, username, email, name, role_uuid, salt, hash, is_active, version) VALUES (
+    "f2696fa8-2a63-4392-90fe-55d72e893721", "username", "email@email.com", "John Doe", "006bf07f-76b5-4fb6-9fea-a6072acf1c14",
+    "salt", "hash", true, 0
+);

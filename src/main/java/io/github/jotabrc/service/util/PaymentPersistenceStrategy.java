@@ -49,22 +49,21 @@ public class PaymentPersistenceStrategy implements FinancePersistenceStrategy<Pa
                 columnsAndValues != null ? columnsAndValues.get(TableName.TB_FINANCIAL_ENTITY) : null,
                 conditions
         );
+        PreparedStatement ps1 = conn.prepareStatement(tbFinancialEntity);
+        prepareStatement.prepare(
+                ps1,
+                columnsAndValues != null ? columnsAndValues.get(TableName.TB_FINANCIAL_ENTITY) : conditions);
+
         String tbPayment = sqlBuilder.build(
                 dqml.getType(),
                 TableName.TB_PAYMENT.getTable(),
                 columnsAndValues != null ? columnsAndValues.get(TableName.TB_PAYMENT) : null,
                 conditions
         );
-
-        PreparedStatement ps1 = conn.prepareStatement(tbPayment);
-        prepareStatement.prepare(
-                ps1,
-                columnsAndValues != null ? columnsAndValues.get(TableName.TB_PAYMENT) : conditions);
-
-        PreparedStatement ps2 = conn.prepareStatement(tbFinancialEntity);
+        PreparedStatement ps2 = conn.prepareStatement(tbPayment);
         prepareStatement.prepare(
                 ps2,
-                columnsAndValues != null ? columnsAndValues.get(TableName.TB_FINANCIAL_ENTITY) : conditions);
+                columnsAndValues != null ? columnsAndValues.get(TableName.TB_PAYMENT) : conditions);
         return List.of(ps1, ps2);
     }
 }

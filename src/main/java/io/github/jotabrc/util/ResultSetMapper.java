@@ -16,7 +16,7 @@ public class ResultSetMapper {
     public static UserFinance getUserFinance(final ResultSet rs, final String userUuid) throws SQLException {
         List<FinancialEntity> financialItems = new ArrayList<>();
         while(rs.next()) {
-            financialItems.add(getFinancialEntity(rs));
+            financialItems.add(getEntity(rs));
         }
 
         return UserFinance
@@ -27,84 +27,79 @@ public class ResultSetMapper {
     }
 
     public static FinancialEntity getFinancialEntity(final ResultSet rs) throws SQLException {
+        if (rs.next()) return getEntity(rs);
+        else throw new IllegalArgumentException("Result Set is empty");
+    }
+
+    public static FinancialEntity getEntity(final ResultSet rs) throws SQLException {
         ResultSetMetaData metaData = rs.getMetaData();
         String entityName = null;
-        boolean isRecurring = false;
-        if (hasColumn(metaData, "payee")) entityName = "PAYMENT";
-        if (hasColumn(metaData, "vendor")) entityName = "RECEIPT";
-        if (hasColumn(metaData, "recurring_until")) isRecurring = true;
+        if (rs.getString("p_payee") != null) entityName = "PAYMENT";
+        if (rs.getString("r_vendor") != null) entityName = "RECEIPT";
+        if (rs.getString("recurring_vendor") != null) entityName = "RECURRING_RECEIPT";
+        if (rs.getString("recurring_payee") != null) entityName = "RECURRING_PAYMENT";
 
         return switch (entityName) {
-            case "PAYMENT" -> {
-                if (isRecurring) yield getRecurringPayment(rs);
-                else yield getPayment(rs);
-            }
-            case "RECEIPT" -> {
-                if (isRecurring) yield getRecurringReceipt(rs);
-                else yield getReceipt(rs);
-            }
+            case "PAYMENT" -> getPayment(rs);
+            case "RECEIPT" -> getReceipt(rs);
+            case "RECURRING_RECEIPT" -> getRecurringReceipt(rs);
+            case "RECURRING_PAYMENT" -> getRecurringPayment(rs);
             case null, default -> throw new IllegalArgumentException("Required fields for mapping entity not found");
         };
     }
 
-    private static boolean hasColumn(ResultSetMetaData metaData, String columnName) throws SQLException {
-        for (int i = 1; i <= metaData.getColumnCount(); i++) {
-            if (columnName.equalsIgnoreCase(metaData.getColumnName(i))) return true;
-        }
-        return false;
-    }
-
     public static Payment getPayment(final ResultSet rs) throws SQLException {
         return new Payment(
-                null,
+                rs.getString("uuid"),
                 null,
                 rs.getDate("due_date").toLocalDate(),
                 rs.getDouble("amount"),
                 rs.getString("description"),
-                null,
-                null,
-                0,
-                rs.getString("payee"));
+                rs.getTimestamp("created_at").toLocalDateTime(),
+                rs.getTimestamp("updated_at").toLocalDateTime(),
+                rs.getLong("version"),
+                rs.getString("p_payee"));
     }
 
     public static Receipt getReceipt(final ResultSet rs) throws SQLException {
         return new Receipt(
-                null,
+                rs.getString("uuid"),
                 null,
                 rs.getDate("due_date").toLocalDate(),
                 rs.getDouble("amount"),
                 rs.getString("description"),
-                null,
-                null,
-                0,
-                rs.getString("vendor"));
+                rs.getTimestamp("created_at").toLocalDateTime(),
+                rs.getTimestamp("updated_at").toLocalDateTime(),
+                rs.getLong("version"),
+                rs.getString("r_vendor"));
     }
 
     public static RecurringPayment getRecurringPayment(final ResultSet rs) throws SQLException {
         return new RecurringPayment(
-                null,
+                rs.getString("uuid"),
                 null,
                 rs.getDate("due_date").toLocalDate(),
                 rs.getDouble("amount"),
                 rs.getString("description"),
-                null,
-                null,
-                0,
+                rs.getTimestamp("created_at").toLocalDateTime(),
+                rs.getTimestamp("updated_at").toLocalDateTime(),
+                rs.getLong("version"),
                 rs.getDate("recurring_until").toLocalDate(),
-                rs.getString("payee"));
+                rs.getString("recurring_payee"));
     }
 
     public static RecurringReceipt getRecurringReceipt(final ResultSet rs) throws SQLException {
         return new RecurringReceipt(
-                null,
+                rs.getString("uuid"),
                 null,
                 rs.getDate("due_date").toLocalDate(),
                 rs.getDouble("amount"),
                 rs.getString("description"),
-                null,
-                null,
-                0,
+                rs.getTimestamp("created_at").toLocalDateTime(),
+                rs.getTimestamp("updated_at").toLocalDateTime(),
+                rs.getLong("version"),
                 rs.getDate("recurring_until").toLocalDate(),
-                rs.getString("vendor"));
+                rs.getString("recurring_vendor")
+        );
     }
 }

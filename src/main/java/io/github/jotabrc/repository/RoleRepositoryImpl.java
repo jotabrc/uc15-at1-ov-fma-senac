@@ -77,7 +77,7 @@ public class RoleRepositoryImpl implements RoleRepository {
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 prepareStatement.prepare(ps, conditions);
                 try (ResultSet rs = ps.executeQuery()) {
-                    Role role = null;
+                    Role role;
                     role = buildRole(rs);
                     return Optional.ofNullable(role);
                 }
@@ -112,7 +112,11 @@ public class RoleRepositoryImpl implements RoleRepository {
                     .name(RoleName.getRole(rs.getString("name")))
                     .description(rs.getString("description"))
                     .isActive(rs.getBoolean("is_active"))
-                    .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
+                    .createdAt(
+                            rs.getTimestamp("created_at") != null ?
+                                    rs.getTimestamp("created_at").toLocalDateTime() :
+                                    null
+                    )
                     .updatedAt(
                             rs.getTimestamp("updated_at") != null ?
                                     rs.getTimestamp("updated_at").toLocalDateTime() :
@@ -130,7 +134,7 @@ public class RoleRepositoryImpl implements RoleRepository {
         columnsAndValues.put("name", role.getName());
         columnsAndValues.put("description", role.getDescription());
         columnsAndValues.put("is_active", role.isActive());
-        columnsAndValues.put("created_at", role.getCreatedAt());
+        columnsAndValues.put("updated_at", role.getUpdatedAt());
         columnsAndValues.put("version", role.getVersion());
         return columnsAndValues;
     }

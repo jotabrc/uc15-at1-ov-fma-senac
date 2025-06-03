@@ -28,7 +28,6 @@ public final class FinanceServiceImpl implements FinanceService {
 
     @Override
     public void save(final String userUuid, Connection conn) {
-        applicationContextHolder.hasAuthorization(userUuid);
         financeRepository.save(userUuid, DQML.INSERT, conn);
     }
 

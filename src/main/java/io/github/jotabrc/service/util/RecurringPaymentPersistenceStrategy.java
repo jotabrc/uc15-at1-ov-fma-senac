@@ -48,6 +48,18 @@ public class RecurringPaymentPersistenceStrategy implements FinancePersistenceSt
             final LinkedHashMap<String, Object> conditions,
             final DQML dqml) throws SQLException {
 
+        // FINANCIAL ENTITY TABLE
+        String tbFinancialEntity = sqlBuilder.build(
+                dqml.getType(),
+                TableName.TB_FINANCIAL_ENTITY.getTable(),
+                columnsAndValues != null ? columnsAndValues.get(TableName.TB_FINANCIAL_ENTITY) : null,
+                conditions
+        );
+        PreparedStatement ps1 = conn.prepareStatement(tbFinancialEntity);
+        prepareStatement.prepare(
+                ps1,
+                columnsAndValues != null ? columnsAndValues.get(TableName.TB_FINANCIAL_ENTITY) : conditions);
+
         // RECURRING PAYMENT TABLE
         String tb = sqlBuilder.build(
                 dqml.getType(),
@@ -55,9 +67,9 @@ public class RecurringPaymentPersistenceStrategy implements FinancePersistenceSt
                 columnsAndValues != null ? columnsAndValues.get(TableName.TB_RECURRING_PAYMENT) : null,
                 conditions
         );
-        PreparedStatement ps1 = conn.prepareStatement(tb);
+        PreparedStatement ps2 = conn.prepareStatement(tb);
         prepareStatement.prepare(
-                ps1,
+                ps2,
                 columnsAndValues != null ? columnsAndValues.get(TableName.TB_RECURRING_PAYMENT) : conditions);
 
         // RECURRENCE TABLE
@@ -67,22 +79,10 @@ public class RecurringPaymentPersistenceStrategy implements FinancePersistenceSt
                 columnsAndValues != null ? columnsAndValues.get(TableName.TB_RECURRENCE) : null,
                 conditions
         );
-        PreparedStatement ps2 = conn.prepareStatement(tbRecurrence);
-        prepareStatement.prepare(
-                ps2,
-                columnsAndValues != null ? columnsAndValues.get(TableName.TB_RECURRENCE) : conditions);
-
-        // FINANCIAL ENTITY TABLE
-        String tbFinancialEntity = sqlBuilder.build(
-                dqml.getType(),
-                TableName.TB_FINANCIAL_ENTITY.getTable(),
-                columnsAndValues != null ? columnsAndValues.get(TableName.TB_FINANCIAL_ENTITY) : null,
-                conditions
-        );
-        PreparedStatement ps3 = conn.prepareStatement(tbFinancialEntity);
+        PreparedStatement ps3 = conn.prepareStatement(tbRecurrence);
         prepareStatement.prepare(
                 ps3,
-                columnsAndValues != null ? columnsAndValues.get(TableName.TB_FINANCIAL_ENTITY) : conditions);
+                columnsAndValues != null ? columnsAndValues.get(TableName.TB_RECURRENCE) : conditions);
         return List.of(ps1, ps2, ps3);
     }
 }

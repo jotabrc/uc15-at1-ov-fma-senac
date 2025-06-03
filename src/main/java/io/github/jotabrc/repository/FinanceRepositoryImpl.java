@@ -11,10 +11,15 @@ import io.github.jotabrc.util.DependencySelectorImpl;
 import io.github.jotabrc.util.ResultSetMapper;
 import io.github.jotabrc.util.TableName;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 public class FinanceRepositoryImpl implements FinanceRepository {
 
@@ -60,15 +65,14 @@ public class FinanceRepositoryImpl implements FinanceRepository {
                     DQML.SELECT.getType(),
                     TableName.TB_USER_FINANCE.getTable(),
                     conditions,
-                    new String[]{"uuid", "user_finance_uuid"}
+                    new String[]{"uuid"}
             );
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 prepareStatement.prepare(ps, conditions);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next())
                         return Map.of(
-                                "uuid", rs.getString("uuid"),
-                                "user_finance_uuid", rs.getString("user_finance_uuid")
+                                "user_finance_uuid", rs.getString("uuid")
                         );
                     throw new NotFoundException("User financial information not found with user UUID %s".formatted(userUuid));
                 } catch (Exception e) {
@@ -111,17 +115,17 @@ public class FinanceRepositoryImpl implements FinanceRepository {
 
         try (Connection conn = connectionUtil.getCon()) {
             String sql = """
-                    SELECT rec.recurring_until, rp.payee, rr.vendor, r.vendor, p.payee, fe.amount, fe.due_date, fe.description
+                    SELECT p.payee AS p_payee, r.vendor AS r_vendor, fe.amount, fe.due_date, fe.description, fe.uuid, fe.created_at, fe.updated_at, fe.version,
+                    rec.recurring_until, rr.vendor AS recurring_vendor, rp.payee AS recurring_payee
                     FROM tb_user_finance uf
                     JOIN tb_financial_entity fe ON fe.user_finance_uuid = uf.uuid
-                    JOIN tb_payment p ON p.uuid = fe.uuid
-                    JOIN tb_receipt r ON r.uuid = fe.uuid
-                    JOIN tb_recurrence rec ON rec.uuid = fe.uuid
-                    JOIN tb_recurring_receipt rr ON rr.uuid = fe.uuid
-                    JOIN tb_recurring_payment rp ON rp.uuid = fe.uuid
-                    WHERE fe.due_date BETWEEN ? AND ? AND
-                    (rec.recurring_until BETWEEN ? AND ? OR rec.recurring_until IS NULL)
-                    AND uf.user_uuid = ? ORDER BY %s LIMIT ? OFFSET ?""".formatted(pageFilter.sort());
+                    LEFT JOIN tb_payment p ON p.uuid = fe.uuid
+                    LEFT JOIN tb_receipt r ON r.uuid = fe.uuid
+                    LEFT JOIN tb_recurrence rec ON rec.uuid = fe.uuid
+                    LEFT JOIN tb_recurring_receipt rr ON rr.uuid = fe.uuid
+                    LEFT JOIN tb_recurring_payment rp ON rp.uuid = fe.uuid
+                    WHERE ((fe.due_date BETWEEN ? AND ?) OR ((rec.recurring_until BETWEEN ? AND ?) OR (rec.recurring_until IS NULL)))
+                    AND (uf.user_uuid = ?) ORDER BY %s LIMIT ? OFFSET ?""".formatted(pageFilter.sort());
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 LinkedHashMap<String, Object> values = new LinkedHashMap<>();
                 getFilterValues(pageFilter, values);
@@ -151,7 +155,7 @@ public class FinanceRepositoryImpl implements FinanceRepository {
     private void getColumnsAndValues(final String userUuid, final Map<String, Object> columnsAndValues) {
         columnsAndValues.put("uuid", UUID.randomUUID().toString());
         columnsAndValues.put("user_uuid", userUuid);
-        columnsAndValues.put("created_at", Timestamp.from(LocalDateTime.now().atZone(ZoneId.of("UTC")).toInstant()));
+        columnsAndValues.put("updated_at", LocalDateTime.now());
         columnsAndValues.put("version", 0);
     }
 }
