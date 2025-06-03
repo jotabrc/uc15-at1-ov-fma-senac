@@ -37,10 +37,9 @@ Gestão financeira, usuários podem inserir seus créditos e débitos, sejam ele
     * Recorrentes ou não.
   * Atualização de débitos e créditos;
   * Visualização de dados.
-* Administradores
-  * Todos os recursos que os usuários;
-  * Desativar contas de usuário.
 
+### Status
+Em desenvolvimento
 
-# Diagram
-![ov-fma.drawio(6).png](docs/ov-fma.drawio%286%29.png)
+### Time
+João Carlos Roveda Ostrovski
