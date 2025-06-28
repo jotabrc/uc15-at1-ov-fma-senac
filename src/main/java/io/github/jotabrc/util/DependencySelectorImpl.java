@@ -12,26 +12,26 @@ public class DependencySelectorImpl implements DependencySelector {
     private DependencySelectorImpl() {}
 
     @Override
-    public <T> T select(Class<T> clazz) {
-        ServiceLoader<T> loader = getLoader(clazz);
+    public <T> T select(Class<T> targetClass) {
+        ServiceLoader<T> loader = getLoader(targetClass);
         return loader
                 .stream()
                 .map(ServiceLoader.Provider::get)
-                .filter(clazz::isInstance)
+                .filter(targetClass::isInstance)
                 .min(Comparator.comparingInt(e -> e.getClass().getAnnotation(ServicePriority.class).value()))
                 .or(() ->
-                        getLoader(clazz)
+                        getLoader(targetClass)
                                 .stream()
                                 .map(ServiceLoader.Provider::get)
-                                .filter(clazz::isInstance)
+                                .filter(targetClass::isInstance)
                                 .findFirst()
                 )
                 .orElseThrow(() -> new RuntimeException("Unable to find dependency"));
     }
 
     @Override
-    public <T> ServiceLoader<T> getLoader(Class<T> clazz) {
-        return ServiceLoader.load(clazz);
+    public <T> ServiceLoader<T> getLoader(Class<T> targetClass) {
+        return ServiceLoader.load(targetClass);
     }
 
     public static DependencySelector getInstance() {

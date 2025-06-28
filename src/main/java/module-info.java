@@ -9,6 +9,8 @@ open module uc.fifteen.at.one.ov.fma.senac {
     requires com.fasterxml.jackson.annotation;
     requires java.base;
     requires java.desktop;
+    requires javafx.graphics;
+    requires javafx.fxml;
 
     uses io.github.jotabrc.repository.util.SqlBuilder;
     provides io.github.jotabrc.repository.util.SqlBuilder
