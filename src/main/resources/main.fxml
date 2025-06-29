@@ -4,4 +4,18 @@
 <?import javafx.scene.layout.*?>
 <BorderPane fx:id="mainBorderPane" xmlns:fx="http://javafx.com/fxml"
             fx:controller="io.github.jotabrc.ui.MainController" styleClass="mainFrame">
+    <top>
+        <VBox styleClass="topLayer" fx:id="topBox"></VBox>
+    </top>
+    <left>
+        <VBox styleClass="leftLayer" fx:id="leftBox"></VBox>
+    </left>
+    <center>
+        <ScrollPane fitToHeight="true" fitToWidth="true">
+            <VBox styleClass="centerLayer" fx:id="centerBox"></VBox>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <VBox styleClass="bottomLayer" fx:id="bottomBox"></VBox>
+    </bottom>
 </BorderPane>

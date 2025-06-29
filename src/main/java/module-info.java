@@ -11,6 +11,9 @@ open module uc.fifteen.at.one.ov.fma.senac {
     requires java.desktop;
     requires javafx.graphics;
     requires javafx.fxml;
+    requires javafx.controls;
+
+    exports io.github.jotabrc.ui;
 
     uses io.github.jotabrc.repository.util.SqlBuilder;
     provides io.github.jotabrc.repository.util.SqlBuilder
